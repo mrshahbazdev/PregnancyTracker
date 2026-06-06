@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:intl/intl.dart';
+
 import '../../core/baby_data.dart';
 import '../../core/theme.dart';
 import '../../models/pregnancy_profile.dart';
 import '../../state/app_state.dart';
+import '../appointments/appointments_screen.dart';
+import '../checklists/prep_hub_screen.dart';
+import '../insights/movement_insights.dart';
+import '../insights/movement_insights_screen.dart';
 import '../memory/time_capsule_screen.dart';
 import '../settings/settings_screen.dart';
 
@@ -47,6 +53,10 @@ class TodayScreen extends ConsumerWidget {
           _BabySizeCard(info: info),
           const SizedBox(height: 16),
           _DevelopmentCard(info: info),
+          const SizedBox(height: 16),
+          const _MovementInsightCard(),
+          const SizedBox(height: 16),
+          const _NextAppointmentCard(),
           const SizedBox(height: 16),
           _QuickActions(),
         ],
@@ -221,6 +231,123 @@ class _DevelopmentCard extends StatelessWidget {
   }
 }
 
+class _MovementInsightCard extends ConsumerWidget {
+  const _MovementInsightCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final insights = ref.watch(movementInsightsProvider);
+    final (color, icon) = switch (insights.status) {
+      MovementStatus.learning => (AppColors.secondary, Icons.auto_graph_rounded),
+      MovementStatus.normal => (const Color(0xFF4CAF82), Icons.favorite_rounded),
+      MovementStatus.watch => (
+          const Color(0xFFD9822B),
+          Icons.warning_amber_rounded
+        ),
+    };
+
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const MovementInsightsScreen()),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: color),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Fetal movement',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 2),
+                    Text(insights.message,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: AppColors.textMuted, fontSize: 13)),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: AppColors.textMuted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NextAppointmentCard extends ConsumerWidget {
+  const _NextAppointmentCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final next = ref.watch(nextAppointmentProvider);
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const AppointmentsScreen()),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.event_outlined,
+                    color: AppColors.secondary),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Next appointment',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 2),
+                    Text(
+                      next == null
+                          ? 'Tap to add your prenatal visits'
+                          : '${next.title} · '
+                              '${DateFormat('MMM d, h:mm a').format(next.dateTime)}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          color: AppColors.textMuted, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: AppColors.textMuted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -229,6 +356,26 @@ class _QuickActions extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         child: Column(
           children: [
+            ListTile(
+              leading: const Icon(Icons.event_note_outlined,
+                  color: AppColors.secondary),
+              title: const Text('Appointments'),
+              subtitle: const Text('Manage prenatal visits & scans'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AppointmentsScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.checklist_rounded,
+                  color: AppColors.primaryDark),
+              title: const Text('Prep & Checklists'),
+              subtitle: const Text('Hospital bag & pregnancy to-do'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PrepHubScreen()),
+              ),
+            ),
             ListTile(
               leading: const Icon(Icons.book_outlined,
                   color: AppColors.primary),

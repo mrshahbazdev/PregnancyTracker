@@ -18,6 +18,7 @@ class LocalStore {
   static const _kKicks = 'kick_sessions';
   static const _kMeasurements = 'measurements';
   static const _kMemories = 'memories';
+  static const _kAppointments = 'appointments';
 
   static Future<LocalStore> create() async {
     final prefs = await SharedPreferences.getInstance();
@@ -75,4 +76,27 @@ class LocalStore {
 
   Future<void> saveMemories(List<MemoryEntry> items) =>
       _writeList(_kMemories, items.map((e) => e.toJson()).toList());
+
+  // ---- Appointments ----
+  List<Appointment> loadAppointments() =>
+      _readList(_kAppointments).map(Appointment.fromJson).toList();
+
+  Future<void> saveAppointments(List<Appointment> items) =>
+      _writeList(_kAppointments, items.map((e) => e.toJson()).toList());
+
+  // ---- Checklists (keyed by kind) ----
+  static String _checklistKey(String kind) => 'checklist_$kind';
+
+  /// Returns saved checklist items for [kind], or null if never saved (so the
+  /// caller can seed presets).
+  List<ChecklistItem>? loadChecklist(String kind) {
+    final raw = _prefs.getString(_checklistKey(kind));
+    if (raw == null) return null;
+    return _readList(_checklistKey(kind))
+        .map(ChecklistItem.fromJson)
+        .toList();
+  }
+
+  Future<void> saveChecklist(String kind, List<ChecklistItem> items) =>
+      _writeList(_checklistKey(kind), items.map((e) => e.toJson()).toList());
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/checklist_data.dart';
 import '../data/local_store.dart';
 import '../models/log_entry.dart';
 import '../models/pregnancy_profile.dart';
@@ -129,4 +130,87 @@ class MemoriesNotifier extends StateNotifier<List<MemoryEntry>> {
 final memoriesProvider =
     StateNotifierProvider<MemoriesNotifier, List<MemoryEntry>>((ref) {
   return MemoriesNotifier(ref.watch(localStoreProvider));
+});
+
+/// Prenatal appointments, soonest first.
+class AppointmentsNotifier extends StateNotifier<List<Appointment>> {
+  AppointmentsNotifier(this._store) : super(_sorted(_store.loadAppointments()));
+
+  final LocalStore _store;
+
+  static List<Appointment> _sorted(List<Appointment> list) {
+    final copy = [...list]..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    return copy;
+  }
+
+  Future<void> add(Appointment a) async {
+    state = _sorted([...state, a]);
+    await _store.saveAppointments(state);
+  }
+
+  Future<void> remove(String id) async {
+    state = state.where((e) => e.id != id).toList();
+    await _store.saveAppointments(state);
+  }
+}
+
+final appointmentsProvider =
+    StateNotifierProvider<AppointmentsNotifier, List<Appointment>>((ref) {
+  return AppointmentsNotifier(ref.watch(localStoreProvider));
+});
+
+/// The next upcoming appointment, or null if none is scheduled.
+final nextAppointmentProvider = Provider<Appointment?>((ref) {
+  final now = DateTime.now();
+  final upcoming = ref
+      .watch(appointmentsProvider)
+      .where((a) => a.dateTime.isAfter(now))
+      .toList();
+  return upcoming.isEmpty ? null : upcoming.first;
+});
+
+/// A checklist (keyed by [ChecklistKind]). Seeds presets on first use, then
+/// persists user changes (toggles, custom items, deletions).
+class ChecklistNotifier extends StateNotifier<List<ChecklistItem>> {
+  ChecklistNotifier(this._store, this._kind)
+      : super(_store.loadChecklist(_kind) ?? defaultChecklist(_kind));
+
+  final LocalStore _store;
+  final String _kind;
+
+  Future<void> _persist() => _store.saveChecklist(_kind, state);
+
+  Future<void> toggle(String id) async {
+    state = [
+      for (final item in state)
+        if (item.id == id) item.copyWith(done: !item.done) else item,
+    ];
+    await _persist();
+  }
+
+  Future<void> addCustom(String label, String category) async {
+    final item = ChecklistItem(
+      id: 'custom_${DateTime.now().microsecondsSinceEpoch}',
+      label: label,
+      category: category,
+      custom: true,
+    );
+    state = [...state, item];
+    await _persist();
+  }
+
+  Future<void> remove(String id) async {
+    state = state.where((e) => e.id != id).toList();
+    await _persist();
+  }
+
+  Future<void> resetToDefaults() async {
+    state = defaultChecklist(_kind);
+    await _persist();
+  }
+}
+
+final checklistProvider = StateNotifierProvider.family<ChecklistNotifier,
+    List<ChecklistItem>, String>((ref, kind) {
+  return ChecklistNotifier(ref.watch(localStoreProvider), kind);
 });

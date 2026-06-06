@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import '../../core/theme.dart';
 import '../../models/log_entry.dart';
 import '../../state/app_state.dart';
+import '../insights/movement_insights_screen.dart';
 
 class KickCounterScreen extends ConsumerStatefulWidget {
   const KickCounterScreen({super.key});
@@ -71,7 +72,19 @@ class _KickCounterScreenState extends ConsumerState<KickCounterScreen> {
   Widget build(BuildContext context) {
     final sessions = ref.watch(kickSessionsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Kick Counter')),
+      appBar: AppBar(
+        title: const Text('Kick Counter'),
+        actions: [
+          IconButton(
+            tooltip: 'Movement insights',
+            icon: const Icon(Icons.insights_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (_) => const MovementInsightsScreen()),
+            ),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           const SizedBox(height: 16),
