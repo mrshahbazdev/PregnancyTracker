@@ -100,6 +100,42 @@ class Measurement {
       );
 }
 
+/// A scheduled prenatal appointment.
+@immutable
+class Appointment {
+  const Appointment({
+    required this.id,
+    required this.dateTime,
+    required this.title,
+    this.location = '',
+    this.notes = '',
+  });
+
+  final String id;
+  final DateTime dateTime;
+  final String title;
+  final String location;
+  final String notes;
+
+  bool get isPast => dateTime.isBefore(DateTime.now());
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'dateTime': dateTime.toIso8601String(),
+        'title': title,
+        'location': location,
+        'notes': notes,
+      };
+
+  factory Appointment.fromJson(Map<String, dynamic> json) => Appointment(
+        id: json['id'] as String,
+        dateTime: DateTime.parse(json['dateTime'] as String),
+        title: json['title'] as String,
+        location: json['location'] as String? ?? '',
+        notes: json['notes'] as String? ?? '',
+      );
+}
+
 /// A memory captured for the "Time Capsule" digital baby book.
 @immutable
 class MemoryEntry {
