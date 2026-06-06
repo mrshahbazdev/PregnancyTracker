@@ -130,3 +130,40 @@ final memoriesProvider =
     StateNotifierProvider<MemoriesNotifier, List<MemoryEntry>>((ref) {
   return MemoriesNotifier(ref.watch(localStoreProvider));
 });
+
+/// Prenatal appointments, soonest first.
+class AppointmentsNotifier extends StateNotifier<List<Appointment>> {
+  AppointmentsNotifier(this._store) : super(_sorted(_store.loadAppointments()));
+
+  final LocalStore _store;
+
+  static List<Appointment> _sorted(List<Appointment> list) {
+    final copy = [...list]..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    return copy;
+  }
+
+  Future<void> add(Appointment a) async {
+    state = _sorted([...state, a]);
+    await _store.saveAppointments(state);
+  }
+
+  Future<void> remove(String id) async {
+    state = state.where((e) => e.id != id).toList();
+    await _store.saveAppointments(state);
+  }
+}
+
+final appointmentsProvider =
+    StateNotifierProvider<AppointmentsNotifier, List<Appointment>>((ref) {
+  return AppointmentsNotifier(ref.watch(localStoreProvider));
+});
+
+/// The next upcoming appointment, or null if none is scheduled.
+final nextAppointmentProvider = Provider<Appointment?>((ref) {
+  final now = DateTime.now();
+  final upcoming = ref
+      .watch(appointmentsProvider)
+      .where((a) => a.dateTime.isAfter(now))
+      .toList();
+  return upcoming.isEmpty ? null : upcoming.first;
+});

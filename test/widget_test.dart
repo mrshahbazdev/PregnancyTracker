@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pregnancy_tracker/core/baby_data.dart';
+import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
+import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
 
 void main() {
@@ -58,6 +60,89 @@ void main() {
     test('weekInfoFor clamps out-of-range weeks', () {
       expect(weekInfoFor(2).week, 4);
       expect(weekInfoFor(99).week, 40);
+    });
+  });
+
+  group('MovementInsights', () {
+    final now = DateTime(2026, 3, 10, 12);
+
+    KickSession session(DateTime start, int kicks, {int seconds = 600}) =>
+        KickSession(
+          id: start.toIso8601String(),
+          start: start,
+          durationSeconds: seconds,
+          kicks: kicks,
+        );
+
+    test('no sessions -> learning', () {
+      final insights = MovementInsights.from([], now);
+      expect(insights.status, MovementStatus.learning);
+      expect(insights.totalSessions, 0);
+    });
+
+    test('fewer than minBaseline past days -> learning', () {
+      final sessions = [
+        session(now.subtract(const Duration(days: 1)), 10),
+        session(now.subtract(const Duration(days: 2)), 12),
+      ];
+      final insights = MovementInsights.from(sessions, now);
+      expect(insights.status, MovementStatus.learning);
+      expect(insights.baselineSessions, 2);
+    });
+
+    test('baseline established, today consistent -> normal', () {
+      final sessions = [
+        session(now.subtract(const Duration(days: 1)), 10),
+        session(now.subtract(const Duration(days: 2)), 10),
+        session(now.subtract(const Duration(days: 3)), 10),
+        session(now.add(const Duration(hours: -1)), 10), // today
+      ];
+      final insights = MovementInsights.from(sessions, now);
+      expect(insights.status, MovementStatus.normal);
+      expect(insights.averageKicks, closeTo(10, 0.001));
+      expect(insights.todayBestKicks, 10);
+      expect(insights.averageMinutesToTen, closeTo(10, 0.001));
+    });
+
+    test('today far below baseline -> watch', () {
+      final sessions = [
+        session(now.subtract(const Duration(days: 1)), 12),
+        session(now.subtract(const Duration(days: 2)), 12),
+        session(now.subtract(const Duration(days: 3)), 12),
+        session(now.add(const Duration(hours: -1)), 3), // today, low
+      ];
+      final insights = MovementInsights.from(sessions, now);
+      expect(insights.status, MovementStatus.watch);
+      expect(insights.todayBestKicks, 3);
+    });
+
+    test('baseline established but nothing logged today -> normal nudge', () {
+      final sessions = [
+        session(now.subtract(const Duration(days: 1)), 10),
+        session(now.subtract(const Duration(days: 2)), 10),
+        session(now.subtract(const Duration(days: 3)), 10),
+      ];
+      final insights = MovementInsights.from(sessions, now);
+      expect(insights.status, MovementStatus.normal);
+      expect(insights.todayBestKicks, isNull);
+    });
+  });
+
+  group('Appointment', () {
+    test('serializes round-trip', () {
+      final appt = Appointment(
+        id: 'a1',
+        dateTime: DateTime(2026, 5, 1, 9, 30),
+        title: 'Anomaly scan',
+        location: 'City Hospital',
+        notes: 'Bring records',
+      );
+      final restored = Appointment.fromJson(appt.toJson());
+      expect(restored.id, appt.id);
+      expect(restored.dateTime, appt.dateTime);
+      expect(restored.title, appt.title);
+      expect(restored.location, appt.location);
+      expect(restored.notes, appt.notes);
     });
   });
 }

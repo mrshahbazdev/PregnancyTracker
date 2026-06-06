@@ -18,6 +18,7 @@ class LocalStore {
   static const _kKicks = 'kick_sessions';
   static const _kMeasurements = 'measurements';
   static const _kMemories = 'memories';
+  static const _kAppointments = 'appointments';
 
   static Future<LocalStore> create() async {
     final prefs = await SharedPreferences.getInstance();
@@ -75,4 +76,11 @@ class LocalStore {
 
   Future<void> saveMemories(List<MemoryEntry> items) =>
       _writeList(_kMemories, items.map((e) => e.toJson()).toList());
+
+  // ---- Appointments ----
+  List<Appointment> loadAppointments() =>
+      _readList(_kAppointments).map(Appointment.fromJson).toList();
+
+  Future<void> saveAppointments(List<Appointment> items) =>
+      _writeList(_kAppointments, items.map((e) => e.toJson()).toList());
 }
