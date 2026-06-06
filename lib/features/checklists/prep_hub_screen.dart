@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/birth_plan_data.dart';
 import '../../core/checklist_data.dart';
 import '../../core/theme.dart';
 import '../../state/app_state.dart';
+import '../birthplan/birth_plan_screen.dart';
 import 'checklist_screen.dart';
 
 class PrepHubScreen extends StatelessWidget {
@@ -31,6 +33,8 @@ class PrepHubScreen extends StatelessWidget {
             icon: Icons.luggage_rounded,
             accent: AppColors.secondary,
           ),
+          SizedBox(height: 16),
+          _BirthPlanEntry(),
         ],
       ),
     );
@@ -105,6 +109,75 @@ class _ChecklistEntry extends ConsumerWidget {
                     ),
                     const SizedBox(height: 6),
                     Text('$done of $total done',
+                        style: const TextStyle(
+                            color: AppColors.textMuted, fontSize: 12)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BirthPlanEntry extends ConsumerWidget {
+  const _BirthPlanEntry();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    const accent = AppColors.accent;
+    final plan = ref.watch(birthPlanProvider);
+    final answered = birthPlanAnsweredCount(plan);
+    final total = kBirthPlanQuestions.length;
+    final progress = total == 0 ? 0.0 : answered / total;
+
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const BirthPlanScreen()),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.20),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: const Icon(Icons.favorite_rounded,
+                    color: AppColors.primaryDark, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Birth Plan',
+                        style: TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 2),
+                    const Text('Your preferences for labor & delivery',
+                        style: TextStyle(
+                            color: AppColors.textMuted, fontSize: 13)),
+                    const SizedBox(height: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 7,
+                        backgroundColor: accent.withValues(alpha: 0.25),
+                        valueColor:
+                            const AlwaysStoppedAnimation(AppColors.primaryDark),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text('$answered of $total preferences set',
                         style: const TextStyle(
                             color: AppColors.textMuted, fontSize: 12)),
                   ],
