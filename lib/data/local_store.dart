@@ -83,4 +83,20 @@ class LocalStore {
 
   Future<void> saveAppointments(List<Appointment> items) =>
       _writeList(_kAppointments, items.map((e) => e.toJson()).toList());
+
+  // ---- Checklists (keyed by kind) ----
+  static String _checklistKey(String kind) => 'checklist_$kind';
+
+  /// Returns saved checklist items for [kind], or null if never saved (so the
+  /// caller can seed presets).
+  List<ChecklistItem>? loadChecklist(String kind) {
+    final raw = _prefs.getString(_checklistKey(kind));
+    if (raw == null) return null;
+    return _readList(_checklistKey(kind))
+        .map(ChecklistItem.fromJson)
+        .toList();
+  }
+
+  Future<void> saveChecklist(String kind, List<ChecklistItem> items) =>
+      _writeList(_checklistKey(kind), items.map((e) => e.toJson()).toList());
 }

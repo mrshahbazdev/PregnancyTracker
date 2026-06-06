@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pregnancy_tracker/core/baby_data.dart';
+import 'package:pregnancy_tracker/core/checklist_data.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -125,6 +126,48 @@ void main() {
       final insights = MovementInsights.from(sessions, now);
       expect(insights.status, MovementStatus.normal);
       expect(insights.todayBestKicks, isNull);
+    });
+  });
+
+  group('Checklists', () {
+    test('hospital bag and to-do have unique non-empty preset ids', () {
+      for (final kind in [ChecklistKind.hospitalBag, ChecklistKind.todo]) {
+        final items = defaultChecklist(kind);
+        expect(items, isNotEmpty);
+        final ids = items.map((e) => e.id).toSet();
+        expect(ids.length, items.length, reason: 'duplicate ids in $kind');
+        for (final item in items) {
+          expect(item.label, isNotEmpty);
+          expect(item.category, isNotEmpty);
+          expect(item.done, isFalse);
+        }
+      }
+    });
+
+    test('unknown checklist kind returns empty', () {
+      expect(defaultChecklist('nope'), isEmpty);
+    });
+
+    test('ChecklistItem.copyWith toggles done only', () {
+      const item = ChecklistItem(
+          id: 'x', label: 'Item', category: 'Mom', custom: true);
+      final toggled = item.copyWith(done: true);
+      expect(toggled.done, isTrue);
+      expect(toggled.id, item.id);
+      expect(toggled.label, item.label);
+      expect(toggled.category, item.category);
+      expect(toggled.custom, isTrue);
+    });
+
+    test('ChecklistItem serializes round-trip', () {
+      const item = ChecklistItem(
+          id: 'x', label: 'Item', category: 'Baby', done: true, custom: true);
+      final restored = ChecklistItem.fromJson(item.toJson());
+      expect(restored.id, item.id);
+      expect(restored.label, item.label);
+      expect(restored.category, item.category);
+      expect(restored.done, item.done);
+      expect(restored.custom, item.custom);
     });
   });
 

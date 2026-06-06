@@ -8,6 +8,7 @@ import '../../core/theme.dart';
 import '../../models/pregnancy_profile.dart';
 import '../../state/app_state.dart';
 import '../appointments/appointments_screen.dart';
+import '../checklists/prep_hub_screen.dart';
 import '../insights/movement_insights.dart';
 import '../insights/movement_insights_screen.dart';
 import '../memory/time_capsule_screen.dart';
@@ -363,6 +364,16 @@ class _QuickActions extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const AppointmentsScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.checklist_rounded,
+                  color: AppColors.primaryDark),
+              title: const Text('Prep & Checklists'),
+              subtitle: const Text('Hospital bag & pregnancy to-do'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PrepHubScreen()),
               ),
             ),
             ListTile(

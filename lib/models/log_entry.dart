@@ -100,6 +100,52 @@ class Measurement {
       );
 }
 
+/// A single item in a checklist (hospital bag, to-do, etc.).
+@immutable
+class ChecklistItem {
+  const ChecklistItem({
+    required this.id,
+    required this.label,
+    required this.category,
+    this.done = false,
+    this.custom = false,
+  });
+
+  final String id;
+  final String label;
+
+  /// Grouping header, e.g. "Mom", "Baby", "Documents". May be empty.
+  final String category;
+  final bool done;
+
+  /// True if the user added this item (vs a preset), so it can be deleted.
+  final bool custom;
+
+  ChecklistItem copyWith({bool? done}) => ChecklistItem(
+        id: id,
+        label: label,
+        category: category,
+        done: done ?? this.done,
+        custom: custom,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'label': label,
+        'category': category,
+        'done': done,
+        'custom': custom,
+      };
+
+  factory ChecklistItem.fromJson(Map<String, dynamic> json) => ChecklistItem(
+        id: json['id'] as String,
+        label: json['label'] as String,
+        category: json['category'] as String? ?? '',
+        done: json['done'] as bool? ?? false,
+        custom: json['custom'] as bool? ?? false,
+      );
+}
+
 /// A scheduled prenatal appointment.
 @immutable
 class Appointment {
