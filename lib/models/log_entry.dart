@@ -100,6 +100,35 @@ class Measurement {
       );
 }
 
+/// The user's birth-plan answers (question id -> chosen option) plus free notes.
+@immutable
+class BirthPlan {
+  const BirthPlan({this.answers = const {}, this.notes = ''});
+
+  final Map<String, String> answers;
+  final String notes;
+
+  BirthPlan setAnswer(String questionId, String option) {
+    final next = Map<String, String>.from(answers);
+    next[questionId] = option;
+    return BirthPlan(answers: next, notes: notes);
+  }
+
+  BirthPlan withNotes(String value) =>
+      BirthPlan(answers: answers, notes: value);
+
+  Map<String, dynamic> toJson() => {
+        'answers': answers,
+        'notes': notes,
+      };
+
+  factory BirthPlan.fromJson(Map<String, dynamic> json) => BirthPlan(
+        answers: (json['answers'] as Map<String, dynamic>? ?? {})
+            .map((k, v) => MapEntry(k, v as String)),
+        notes: json['notes'] as String? ?? '',
+      );
+}
+
 /// A single item in a checklist (hospital bag, to-do, etc.).
 @immutable
 class ChecklistItem {

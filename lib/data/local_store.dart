@@ -19,6 +19,7 @@ class LocalStore {
   static const _kMeasurements = 'measurements';
   static const _kMemories = 'memories';
   static const _kAppointments = 'appointments';
+  static const _kBirthPlan = 'birth_plan';
 
   static Future<LocalStore> create() async {
     final prefs = await SharedPreferences.getInstance();
@@ -99,4 +100,14 @@ class LocalStore {
 
   Future<void> saveChecklist(String kind, List<ChecklistItem> items) =>
       _writeList(_checklistKey(kind), items.map((e) => e.toJson()).toList());
+
+  // ---- Birth plan ----
+  BirthPlan loadBirthPlan() {
+    final raw = _prefs.getString(_kBirthPlan);
+    if (raw == null) return const BirthPlan();
+    return BirthPlan.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+  }
+
+  Future<void> saveBirthPlan(BirthPlan plan) =>
+      _prefs.setString(_kBirthPlan, jsonEncode(plan.toJson()));
 }

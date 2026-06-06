@@ -214,3 +214,25 @@ final checklistProvider = StateNotifierProvider.family<ChecklistNotifier,
     List<ChecklistItem>, String>((ref, kind) {
   return ChecklistNotifier(ref.watch(localStoreProvider), kind);
 });
+
+/// The user's birth plan (answers + notes), persisted on every change.
+class BirthPlanNotifier extends StateNotifier<BirthPlan> {
+  BirthPlanNotifier(this._store) : super(_store.loadBirthPlan());
+
+  final LocalStore _store;
+
+  Future<void> setAnswer(String questionId, String option) async {
+    state = state.setAnswer(questionId, option);
+    await _store.saveBirthPlan(state);
+  }
+
+  Future<void> setNotes(String value) async {
+    state = state.withNotes(value);
+    await _store.saveBirthPlan(state);
+  }
+}
+
+final birthPlanProvider =
+    StateNotifierProvider<BirthPlanNotifier, BirthPlan>((ref) {
+  return BirthPlanNotifier(ref.watch(localStoreProvider));
+});

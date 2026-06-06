@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pregnancy_tracker/core/baby_data.dart';
+import 'package:pregnancy_tracker/core/birth_plan_data.dart';
 import 'package:pregnancy_tracker/core/checklist_data.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
@@ -168,6 +169,47 @@ void main() {
       expect(restored.category, item.category);
       expect(restored.done, item.done);
       expect(restored.custom, item.custom);
+    });
+  });
+
+  group('Birth plan', () {
+    test('question ids are unique and options non-empty', () {
+      final ids = kBirthPlanQuestions.map((q) => q.id).toSet();
+      expect(ids.length, kBirthPlanQuestions.length);
+      for (final q in kBirthPlanQuestions) {
+        expect(q.prompt, isNotEmpty);
+        expect(q.section, isNotEmpty);
+        expect(q.options, isNotEmpty);
+      }
+    });
+
+    test('answered count and JSON round-trip', () {
+      var plan = const BirthPlan();
+      expect(birthPlanAnsweredCount(plan), 0);
+      plan = plan.setAnswer('pain_approach', 'Epidural').withNotes('No peanuts');
+      expect(birthPlanAnsweredCount(plan), 1);
+      expect(plan.answers['pain_approach'], 'Epidural');
+
+      final restored = BirthPlan.fromJson(plan.toJson());
+      expect(restored.answers, plan.answers);
+      expect(restored.notes, 'No peanuts');
+    });
+
+    test('buildBirthPlanText includes set answers and notes only', () {
+      final plan = const BirthPlan()
+          .setAnswer('pain_approach', 'Epidural')
+          .withNotes('Dim lights please');
+      final text = buildBirthPlanText(plan);
+      expect(text, contains('Pain management'));
+      expect(text, contains('Preferred pain relief: Epidural'));
+      expect(text, contains('Dim lights please'));
+      // Unanswered sections are omitted.
+      expect(text, isNot(contains('Labor environment')));
+    });
+
+    test('empty plan produces no section headers', () {
+      final text = buildBirthPlanText(const BirthPlan());
+      expect(text.trim(), 'My Birth Plan');
     });
   });
 
