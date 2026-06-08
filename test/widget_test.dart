@@ -18,6 +18,8 @@ import 'package:pregnancy_tracker/core/milestones.dart';
 import 'package:pregnancy_tracker/core/budget.dart';
 import 'package:pregnancy_tracker/core/sleep_stats.dart';
 import 'package:pregnancy_tracker/core/cravings_stats.dart';
+import 'package:pregnancy_tracker/core/glossary_data.dart';
+import 'package:pregnancy_tracker/core/glossary_search.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -1081,6 +1083,40 @@ void main() {
       expect(bad.kind, CravingKind.craving);
       expect(bad.intensity, 0);
       expect(bad.week, isNull);
+    });
+  });
+
+  group('Glossary', () {
+    test('curated data is non-empty with unique terms', () {
+      expect(kGlossaryTerms, isNotEmpty);
+      final keys = kGlossaryTerms.map((t) => t.key).toList();
+      expect(keys.toSet().length, keys.length); // no duplicates
+    });
+
+    test('search filters by category and is case-insensitive on text', () {
+      final epidural =
+          searchGlossary(kGlossaryTerms, query: 'EPIDURAL');
+      expect(epidural, isNotEmpty);
+      expect(epidural.first.term, 'Epidural');
+
+      final labor = searchGlossary(kGlossaryTerms,
+          category: GlossaryCategory.labor);
+      expect(labor, isNotEmpty);
+      expect(labor.every((t) => t.category == GlossaryCategory.labor),
+          isTrue);
+
+      // matches against definition text too
+      final byDef = searchGlossary(kGlossaryTerms, query: 'cervix');
+      expect(byDef, isNotEmpty);
+    });
+
+    test('results are sorted by term and empty on no match', () {
+      final all = searchGlossary(kGlossaryTerms);
+      final keys = all.map((t) => t.key).toList();
+      final sorted = [...keys]..sort();
+      expect(keys, sorted);
+
+      expect(searchGlossary(kGlossaryTerms, query: 'zzzznotahing'), isEmpty);
     });
   });
 }
