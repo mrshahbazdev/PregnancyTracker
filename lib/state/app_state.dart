@@ -375,6 +375,40 @@ final cravingsProvider =
   return CravingsNotifier(ref.watch(localStoreProvider));
 });
 
+/// Postpartum recovery day logs, newest first.
+class PostpartumNotifier extends StateNotifier<List<PostpartumEntry>> {
+  PostpartumNotifier(this._store) : super(_sorted(_store.loadPostpartum()));
+
+  final LocalStore _store;
+
+  static List<PostpartumEntry> _sorted(List<PostpartumEntry> list) {
+    final copy = [...list]..sort((a, b) => b.date.compareTo(a.date));
+    return copy;
+  }
+
+  Future<void> add(PostpartumEntry e) async {
+    state = _sorted([...state, e]);
+    await _store.savePostpartum(state);
+  }
+
+  Future<void> update(PostpartumEntry e) async {
+    state = _sorted([
+      for (final p in state) if (p.id == e.id) e else p,
+    ]);
+    await _store.savePostpartum(state);
+  }
+
+  Future<void> remove(String id) async {
+    state = state.where((e) => e.id != id).toList();
+    await _store.savePostpartum(state);
+  }
+}
+
+final postpartumProvider =
+    StateNotifierProvider<PostpartumNotifier, List<PostpartumEntry>>((ref) {
+  return PostpartumNotifier(ref.watch(localStoreProvider));
+});
+
 /// Favourited affirmation IDs.
 class AffirmationFavoritesNotifier extends StateNotifier<Set<String>> {
   AffirmationFavoritesNotifier(this._store)

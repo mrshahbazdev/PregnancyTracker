@@ -22,6 +22,7 @@ import 'package:pregnancy_tracker/core/glossary_data.dart';
 import 'package:pregnancy_tracker/core/glossary_search.dart';
 import 'package:pregnancy_tracker/core/affirmations_data.dart';
 import 'package:pregnancy_tracker/core/affirmation_of_day.dart';
+import 'package:pregnancy_tracker/core/postpartum_stats.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -1143,6 +1144,62 @@ void main() {
       final base = DateTime(2025, 1, 1);
       final wrapped = base.add(Duration(days: pool.length));
       expect(affirmationOfDay(base).id, affirmationOfDay(wrapped).id);
+    });
+  });
+
+  group('Postpartum recovery', () {
+    PostpartumEntry e(String id,
+            {BleedingLevel bleeding = BleedingLevel.light,
+            int mood = 0,
+            int pain = 0,
+            int feeds = 0}) =>
+        PostpartumEntry(
+            id: id,
+            date: DateTime(2025, 1, int.parse(id)),
+            bleeding: bleeding,
+            mood: mood,
+            pain: pain,
+            feeds: feeds);
+
+    test('empty stats are zeroed', () {
+      final s = postpartumStats(const []);
+      expect(s.days, 0);
+      expect(s.avgMood, 0);
+      expect(s.avgPain, 0);
+      expect(s.avgFeeds, 0);
+      expect(s.hasHeavyBleeding, isFalse);
+    });
+
+    test('averages and heavy-bleeding flag', () {
+      final s = postpartumStats([
+        e('1', mood: 4, pain: 6, feeds: 8, bleeding: BleedingLevel.heavy),
+        e('2', mood: 0, pain: 4, feeds: 10), // mood unset -> excluded
+        e('3', mood: 2, pain: 2, feeds: 6),
+      ]);
+      expect(s.days, 3);
+      expect(s.avgMood, closeTo(3, 0.001)); // (4+2)/2
+      expect(s.avgPain, closeTo(4, 0.001)); // (6+4+2)/3
+      expect(s.avgFeeds, closeTo(8, 0.001)); // (8+10+6)/3
+      expect(s.hasHeavyBleeding, isTrue);
+    });
+
+    test('PostpartumEntry round-trips and unknown bleeding falls back', () {
+      final entry = e('5',
+          bleeding: BleedingLevel.medium, mood: 3, pain: 5, feeds: 7);
+      final copy = PostpartumEntry.fromJson(entry.toJson());
+      expect(copy.bleeding, BleedingLevel.medium);
+      expect(copy.mood, 3);
+      expect(copy.pain, 5);
+      expect(copy.feeds, 7);
+
+      final bad = PostpartumEntry.fromJson({
+        'id': 'x',
+        'date': DateTime(2025, 1, 1).toIso8601String(),
+        'bleeding': 'gushing',
+      });
+      expect(bad.bleeding, BleedingLevel.none);
+      expect(bad.mood, 0);
+      expect(bad.feeds, 0);
     });
   });
 }

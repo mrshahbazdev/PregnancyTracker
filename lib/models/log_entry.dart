@@ -680,3 +680,84 @@ class CravingEntry {
         week: json['week'] as int?,
       );
 }
+
+/// Postpartum bleeding (lochia) level for a day.
+enum BleedingLevel { none, light, medium, heavy }
+
+extension BleedingLevelLabel on BleedingLevel {
+  String get label => switch (this) {
+        BleedingLevel.none => 'None',
+        BleedingLevel.light => 'Light',
+        BleedingLevel.medium => 'Medium',
+        BleedingLevel.heavy => 'Heavy',
+      };
+}
+
+/// A single postpartum recovery day log.
+@immutable
+class PostpartumEntry {
+  const PostpartumEntry({
+    required this.id,
+    required this.date,
+    this.bleeding = BleedingLevel.none,
+    this.mood = 0,
+    this.pain = 0,
+    this.feeds = 0,
+    this.note = '',
+  });
+
+  final String id;
+  final DateTime date;
+  final BleedingLevel bleeding;
+
+  /// Mood 1 (low) – 5 (great); 0 means unset.
+  final int mood;
+
+  /// Pain 0 (none) – 10 (worst).
+  final int pain;
+
+  /// Number of baby feeds that day.
+  final int feeds;
+  final String note;
+
+  PostpartumEntry copyWith({
+    BleedingLevel? bleeding,
+    int? mood,
+    int? pain,
+    int? feeds,
+    String? note,
+  }) =>
+      PostpartumEntry(
+        id: id,
+        date: date,
+        bleeding: bleeding ?? this.bleeding,
+        mood: mood ?? this.mood,
+        pain: pain ?? this.pain,
+        feeds: feeds ?? this.feeds,
+        note: note ?? this.note,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'date': date.toIso8601String(),
+        'bleeding': bleeding.name,
+        'mood': mood,
+        'pain': pain,
+        'feeds': feeds,
+        'note': note,
+      };
+
+  factory PostpartumEntry.fromJson(Map<String, dynamic> json) =>
+      PostpartumEntry(
+        id: json['id'] as String,
+        date: DateTime.parse(json['date'] as String),
+        bleeding: BleedingLevel.values.firstWhere(
+          (b) => b.name == json['bleeding'],
+          orElse: () => BleedingLevel.none,
+        ),
+        mood: json['mood'] as int? ?? 0,
+        pain: json['pain'] as int? ?? 0,
+        feeds: json['feeds'] as int? ?? 0,
+        note: json['note'] as String? ?? '',
+      );
+}
