@@ -16,6 +16,7 @@ import '../names/baby_names_screen.dart';
 import '../settings/settings_screen.dart';
 import '../tips/weekly_tips_screen.dart';
 import '../trends/health_trends_screen.dart';
+import '../trends/symptom_trends_screen.dart';
 import '../wellness/wellness_screen.dart';
 
 class TodayScreen extends ConsumerWidget {
@@ -378,6 +379,17 @@ class _QuickActions extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const HealthTrendsScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.insights_rounded,
+                  color: AppColors.primary),
+              title: const Text('Symptom & Mood Trends'),
+              subtitle: const Text('Common symptoms & mood over time'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                    builder: (_) => const SymptomTrendsScreen()),
               ),
             ),
             ListTile(
