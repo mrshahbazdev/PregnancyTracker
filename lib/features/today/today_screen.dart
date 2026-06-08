@@ -13,6 +13,7 @@ import '../insights/movement_insights.dart';
 import '../insights/movement_insights_screen.dart';
 import '../memory/time_capsule_screen.dart';
 import '../settings/settings_screen.dart';
+import '../tips/weekly_tips_screen.dart';
 import '../wellness/wellness_screen.dart';
 
 class TodayScreen extends ConsumerWidget {
@@ -357,6 +358,16 @@ class _QuickActions extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         child: Column(
           children: [
+            ListTile(
+              leading: const Icon(Icons.menu_book_rounded,
+                  color: AppColors.primary),
+              title: const Text('Weekly Tips'),
+              subtitle: const Text('Guidance for your baby & you each week'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const WeeklyTipsScreen()),
+              ),
+            ),
             ListTile(
               leading: const Icon(Icons.event_note_outlined,
                   color: AppColors.secondary),
