@@ -84,6 +84,39 @@ final kickSessionsProvider =
   return KickSessionsNotifier(ref.watch(localStoreProvider));
 });
 
+/// Recorded contractions, newest first.
+class ContractionsNotifier extends StateNotifier<List<Contraction>> {
+  ContractionsNotifier(this._store)
+      : super(_sorted(_store.loadContractions()));
+
+  final LocalStore _store;
+
+  static List<Contraction> _sorted(List<Contraction> list) {
+    final copy = [...list]..sort((a, b) => b.start.compareTo(a.start));
+    return copy;
+  }
+
+  Future<void> add(Contraction c) async {
+    state = _sorted([...state, c]);
+    await _store.saveContractions(state);
+  }
+
+  Future<void> remove(String id) async {
+    state = state.where((e) => e.id != id).toList();
+    await _store.saveContractions(state);
+  }
+
+  Future<void> clearAll() async {
+    state = [];
+    await _store.saveContractions(state);
+  }
+}
+
+final contractionsProvider =
+    StateNotifierProvider<ContractionsNotifier, List<Contraction>>((ref) {
+  return ContractionsNotifier(ref.watch(localStoreProvider));
+});
+
 /// Measurements, newest first.
 class MeasurementsNotifier extends StateNotifier<List<Measurement>> {
   MeasurementsNotifier(this._store)

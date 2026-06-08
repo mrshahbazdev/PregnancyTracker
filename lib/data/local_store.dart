@@ -17,6 +17,7 @@ class LocalStore {
   static const _kProfile = 'profile';
   static const _kSymptoms = 'symptom_logs';
   static const _kKicks = 'kick_sessions';
+  static const _kContractions = 'contractions';
   static const _kMeasurements = 'measurements';
   static const _kMemories = 'memories';
   static const _kAppointments = 'appointments';
@@ -67,6 +68,13 @@ class LocalStore {
 
   Future<void> saveKickSessions(List<KickSession> sessions) =>
       _writeList(_kKicks, sessions.map((e) => e.toJson()).toList());
+
+  // ---- Contractions ----
+  List<Contraction> loadContractions() =>
+      _readList(_kContractions).map(Contraction.fromJson).toList();
+
+  Future<void> saveContractions(List<Contraction> items) =>
+      _writeList(_kContractions, items.map((e) => e.toJson()).toList());
 
   // ---- Measurements ----
   List<Measurement> loadMeasurements() =>

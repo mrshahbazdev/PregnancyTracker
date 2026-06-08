@@ -6,6 +6,7 @@ import 'package:pregnancy_tracker/core/wellness.dart';
 import 'package:pregnancy_tracker/core/weekly_tips.dart';
 import 'package:pregnancy_tracker/core/baby_names_data.dart';
 import 'package:pregnancy_tracker/core/health_trends.dart';
+import 'package:pregnancy_tracker/core/contractions.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -426,6 +427,87 @@ void main() {
       expect(weightChangeKg([m('2024-01-01', w: 55.0)]), isNull);
       expect(weightChangeKg([m('2024-01-01', sys: 120, dia: 80)]), isNull);
       expect(latestBp([m('2024-01-01', w: 55.0)]), isNull);
+    });
+  });
+
+  group('Contractions 5-1-1', () {
+    final base = DateTime(2024, 5, 1, 10, 0);
+
+    // Builds [count] contractions [intervalMin] apart, each [durSec] long,
+    // ending at the anchor time so the most recent is at `base`.
+    List<Contraction> series({
+      required int count,
+      required int intervalMin,
+      required int durSec,
+    }) {
+      final list = <Contraction>[];
+      for (var i = 0; i < count; i++) {
+        final start = base.subtract(Duration(minutes: intervalMin * i));
+        list.add(Contraction(
+          id: '$i',
+          start: start,
+          end: start.add(Duration(seconds: durSec)),
+        ));
+      }
+      return list;
+    }
+
+    test('empty input is safe', () {
+      final s = analyzeContractions(const [], now: base);
+      expect(s.recentCount, 0);
+      expect(s.meets511, isFalse);
+    });
+
+    test('regular 5-min / 1-min over an hour meets 5-1-1', () {
+      final s = analyzeContractions(
+        series(count: 13, intervalMin: 5, durSec: 60),
+        now: base,
+      );
+      expect(s.recentCount, greaterThanOrEqualTo(12));
+      expect(s.avgInterval.inSeconds, closeTo(300, 1));
+      expect(s.avgDuration.inSeconds, 60);
+      expect(s.meets511, isTrue);
+    });
+
+    test('too far apart does not meet 5-1-1', () {
+      final s = analyzeContractions(
+        series(count: 6, intervalMin: 12, durSec: 60),
+        now: base,
+      );
+      // 12-min spacing pushes most out of the 1-hour window.
+      expect(s.meets511, isFalse);
+    });
+
+    test('short contractions do not meet 5-1-1', () {
+      final s = analyzeContractions(
+        series(count: 13, intervalMin: 5, durSec: 30),
+        now: base,
+      );
+      expect(s.meets511, isFalse);
+    });
+
+    test('only a few contractions does not meet 5-1-1', () {
+      final s = analyzeContractions(
+        series(count: 3, intervalMin: 5, durSec: 60),
+        now: base,
+      );
+      expect(s.recentCount, 3);
+      expect(s.meets511, isFalse);
+    });
+
+    test('window excludes contractions older than an hour', () {
+      final old = Contraction(
+        id: 'old',
+        start: base.subtract(const Duration(hours: 3)),
+        end: base.subtract(const Duration(hours: 3)).add(const Duration(seconds: 60)),
+      );
+      final s = analyzeContractions([
+        old,
+        ...series(count: 13, intervalMin: 5, durSec: 60),
+      ], now: base);
+      // The 3-hour-old one is outside the window, so count stays bounded.
+      expect(s.recentCount, lessThanOrEqualTo(13));
+      expect(s.meets511, isTrue);
     });
   });
 }
