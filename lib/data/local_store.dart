@@ -28,6 +28,7 @@ class LocalStore {
   static const _kNameCustom = 'babynames_custom';
   static const _kBreathingCounts = 'breathing_counts';
   static const _kWeightGoal = 'weight_goal';
+  static const _kContacts = 'emergency_contacts';
 
   static Future<LocalStore> create() async {
     final prefs = await SharedPreferences.getInstance();
@@ -123,6 +124,13 @@ class LocalStore {
       _prefs.setString(_kWeightGoal, jsonEncode(config.toJson()));
 
   Future<void> clearWeightGoal() => _prefs.remove(_kWeightGoal);
+
+  // ---- Emergency contacts ----
+  List<EmergencyContact> loadContacts() =>
+      _readList(_kContacts).map(EmergencyContact.fromJson).toList();
+
+  Future<void> saveContacts(List<EmergencyContact> items) =>
+      _writeList(_kContacts, items.map((e) => e.toJson()).toList());
 
   // ---- Appointments ----
   List<Appointment> loadAppointments() =>
