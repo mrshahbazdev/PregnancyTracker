@@ -4,9 +4,11 @@ import 'package:pregnancy_tracker/core/birth_plan_data.dart';
 import 'package:pregnancy_tracker/core/checklist_data.dart';
 import 'package:pregnancy_tracker/core/wellness.dart';
 import 'package:pregnancy_tracker/core/weekly_tips.dart';
+import 'package:pregnancy_tracker/core/baby_names_data.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
+import 'package:pregnancy_tracker/state/app_state.dart';
 
 void main() {
   group('PregnancyProfile gestational math', () {
@@ -325,6 +327,52 @@ void main() {
     test('baby development matches the week data', () {
       final t = tipsForWeek(12);
       expect(t.babyHeadline, weekInfoFor(12).headline);
+    });
+  });
+
+  group('Baby names', () {
+    test('key is case-insensitive and trimmed', () {
+      const a = BabyName(name: '  Aria ', gender: 'girl');
+      const b = BabyName(name: 'aria', gender: 'unisex');
+      expect(a.key, b.key);
+    });
+
+    test('curated list has valid genders and unique keys', () {
+      final keys = <String>{};
+      for (final n in kBabyNames) {
+        expect(kNameGenders.contains(n.gender), isTrue,
+            reason: '${n.name} has gender ${n.gender}');
+        expect(keys.add(n.key), isTrue, reason: 'duplicate ${n.name}');
+      }
+    });
+
+    test('custom BabyName JSON round-trip', () {
+      const n = BabyName(
+        name: 'Zayn',
+        gender: 'boy',
+        origin: 'Arabic',
+        meaning: 'Beauty, grace',
+        isCustom: true,
+      );
+      final r = BabyName.fromJson(n.toJson());
+      expect(r.name, n.name);
+      expect(r.gender, n.gender);
+      expect(r.origin, n.origin);
+      expect(r.meaning, n.meaning);
+      expect(r.isCustom, isTrue);
+    });
+
+    test('state combines curated + custom and reads favourites', () {
+      const custom = BabyName(name: 'Kiaan', gender: 'boy', isCustom: true);
+      final st = BabyNamesState(
+        custom: const [custom],
+        favorites: {'kiaan', kBabyNames.first.key},
+      );
+      expect(st.all.length, kBabyNames.length + 1);
+      expect(st.isFavorite(custom), isTrue);
+      expect(st.isFavorite(kBabyNames.first), isTrue);
+      expect(
+          st.isFavorite(const BabyName(name: 'Nope', gender: 'girl')), isFalse);
     });
   });
 }

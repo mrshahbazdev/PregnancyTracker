@@ -12,6 +12,7 @@ import '../checklists/prep_hub_screen.dart';
 import '../insights/movement_insights.dart';
 import '../insights/movement_insights_screen.dart';
 import '../memory/time_capsule_screen.dart';
+import '../names/baby_names_screen.dart';
 import '../settings/settings_screen.dart';
 import '../tips/weekly_tips_screen.dart';
 import '../wellness/wellness_screen.dart';
@@ -396,6 +397,16 @@ class _QuickActions extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const WellnessScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.badge_outlined,
+                  color: AppColors.primaryDark),
+              title: const Text('Baby Names'),
+              subtitle: const Text('Browse, search & shortlist favourites'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const BabyNamesScreen()),
               ),
             ),
             ListTile(
