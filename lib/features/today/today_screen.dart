@@ -18,6 +18,7 @@ import '../weight/weight_goal_screen.dart';
 import '../contacts/emergency_contacts_screen.dart';
 import '../milestones/milestones_screen.dart';
 import '../budget/budget_screen.dart';
+import '../sleep/sleep_screen.dart';
 import '../memory/time_capsule_screen.dart';
 import '../names/baby_names_screen.dart';
 import '../settings/settings_screen.dart';
@@ -428,6 +429,16 @@ class _QuickActions extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const PrepHubScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.bedtime_rounded,
+                  color: AppColors.secondary),
+              title: const Text('Sleep Tracker'),
+              subtitle: const Text('Log nightly rest, quality & side'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SleepScreen()),
               ),
             ),
             ListTile(

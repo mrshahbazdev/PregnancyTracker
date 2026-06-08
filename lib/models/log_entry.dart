@@ -534,3 +534,76 @@ class BudgetItem {
         paid: json['paid'] as bool? ?? false,
       );
 }
+
+/// Primary sleeping position for a night. Left side is recommended in the
+/// third trimester for blood flow.
+enum SleepSide { left, right, back, unset }
+
+extension SleepSideLabel on SleepSide {
+  String get label => switch (this) {
+        SleepSide.left => 'Left side',
+        SleepSide.right => 'Right side',
+        SleepSide.back => 'On back',
+        SleepSide.unset => 'Not set',
+      };
+}
+
+/// A single night's sleep log.
+@immutable
+class SleepEntry {
+  const SleepEntry({
+    required this.id,
+    required this.date,
+    required this.hours,
+    this.quality = 0,
+    this.side = SleepSide.unset,
+    this.note = '',
+  });
+
+  final String id;
+  final DateTime date;
+
+  /// Hours slept.
+  final double hours;
+
+  /// Quality on a 1 (poor) – 5 (great) scale; 0 means unset.
+  final int quality;
+  final SleepSide side;
+  final String note;
+
+  SleepEntry copyWith({
+    double? hours,
+    int? quality,
+    SleepSide? side,
+    String? note,
+  }) =>
+      SleepEntry(
+        id: id,
+        date: date,
+        hours: hours ?? this.hours,
+        quality: quality ?? this.quality,
+        side: side ?? this.side,
+        note: note ?? this.note,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'date': date.toIso8601String(),
+        'hours': hours,
+        'quality': quality,
+        'side': side.name,
+        'note': note,
+      };
+
+  factory SleepEntry.fromJson(Map<String, dynamic> json) => SleepEntry(
+        id: json['id'] as String,
+        date: DateTime.parse(json['date'] as String),
+        hours: (json['hours'] as num).toDouble(),
+        quality: json['quality'] as int? ?? 0,
+        side: SleepSide.values.firstWhere(
+          (s) => s.name == json['side'],
+          orElse: () => SleepSide.unset,
+        ),
+        note: json['note'] as String? ?? '',
+      );
+}

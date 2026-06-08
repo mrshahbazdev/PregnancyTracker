@@ -307,6 +307,40 @@ final budgetProvider =
   return BudgetNotifier(ref.watch(localStoreProvider));
 });
 
+/// Nightly sleep logs, newest first.
+class SleepNotifier extends StateNotifier<List<SleepEntry>> {
+  SleepNotifier(this._store) : super(_sorted(_store.loadSleep()));
+
+  final LocalStore _store;
+
+  static List<SleepEntry> _sorted(List<SleepEntry> list) {
+    final copy = [...list]..sort((a, b) => b.date.compareTo(a.date));
+    return copy;
+  }
+
+  Future<void> add(SleepEntry e) async {
+    state = _sorted([...state, e]);
+    await _store.saveSleep(state);
+  }
+
+  Future<void> update(SleepEntry e) async {
+    state = _sorted([
+      for (final s in state) if (s.id == e.id) e else s,
+    ]);
+    await _store.saveSleep(state);
+  }
+
+  Future<void> remove(String id) async {
+    state = state.where((e) => e.id != id).toList();
+    await _store.saveSleep(state);
+  }
+}
+
+final sleepProvider =
+    StateNotifierProvider<SleepNotifier, List<SleepEntry>>((ref) {
+  return SleepNotifier(ref.watch(localStoreProvider));
+});
+
 /// Prenatal appointments, soonest first.
 class AppointmentsNotifier extends StateNotifier<List<Appointment>> {
   AppointmentsNotifier(this._store) : super(_sorted(_store.loadAppointments()));
