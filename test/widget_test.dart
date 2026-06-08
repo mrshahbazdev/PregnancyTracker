@@ -3,6 +3,7 @@ import 'package:pregnancy_tracker/core/baby_data.dart';
 import 'package:pregnancy_tracker/core/birth_plan_data.dart';
 import 'package:pregnancy_tracker/core/checklist_data.dart';
 import 'package:pregnancy_tracker/core/wellness.dart';
+import 'package:pregnancy_tracker/core/weekly_tips.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -290,6 +291,40 @@ void main() {
       expect(restored.title, appt.title);
       expect(restored.location, appt.location);
       expect(restored.notes, appt.notes);
+    });
+  });
+
+  group('Weekly tips', () {
+    test('trimester boundaries', () {
+      expect(trimesterForWeek(1), 1);
+      expect(trimesterForWeek(13), 1);
+      expect(trimesterForWeek(14), 2);
+      expect(trimesterForWeek(27), 2);
+      expect(trimesterForWeek(28), 3);
+      expect(trimesterForWeek(40), 3);
+    });
+
+    test('tipsForWeek returns non-empty guidance and matching week', () {
+      for (final w in [4, 8, 20, 28, 40]) {
+        final t = tipsForWeek(w);
+        expect(t.week, w);
+        expect(t.babyHeadline, isNotEmpty);
+        expect(t.babyDetail, isNotEmpty);
+        expect(t.selfCare, isNotEmpty);
+        expect(t.toDo, isNotEmpty);
+        expect(t.nutrition, isNotEmpty);
+      }
+    });
+
+    test('milestone weeks override the generic to-do', () {
+      expect(tipsForWeek(20).toDo, contains('anomaly'));
+      expect(tipsForWeek(24).toDo, contains('Glucose'));
+      expect(tipsForWeek(36).toDo, contains('GBS'));
+    });
+
+    test('baby development matches the week data', () {
+      final t = tipsForWeek(12);
+      expect(t.babyHeadline, weekInfoFor(12).headline);
     });
   });
 }
