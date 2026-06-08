@@ -14,6 +14,7 @@ import 'package:pregnancy_tracker/core/safety_data.dart';
 import 'package:pregnancy_tracker/core/safety_search.dart';
 import 'package:pregnancy_tracker/core/weight_goal.dart';
 import 'package:pregnancy_tracker/core/contacts.dart';
+import 'package:pregnancy_tracker/core/milestones.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -867,6 +868,44 @@ void main() {
       });
       expect(c.kind, ContactKind.other);
       expect(c.note, '');
+    });
+  });
+
+  group('Milestones', () {
+    test('curated list is week-ordered and ends at the due date', () {
+      for (var i = 1; i < kMilestones.length; i++) {
+        expect(kMilestones[i].week,
+            greaterThanOrEqualTo(kMilestones[i - 1].week));
+      }
+      expect(kMilestones.last.week, 40);
+    });
+
+    test('status reflects current gestational week', () {
+      expect(milestoneStatus(20, 12), MilestoneStatus.done);
+      expect(milestoneStatus(20, 20), MilestoneStatus.current);
+      expect(milestoneStatus(20, 28), MilestoneStatus.upcoming);
+    });
+
+    test('milestoneDate is LMP + week*7 days', () {
+      final profile = PregnancyProfile(
+        name: 'A',
+        dueDate: DateTime(2025, 1, 1),
+        method: DueDateMethod.dueDate,
+      );
+      final d = milestoneDate(profile, 20);
+      expect(d, profile.lmpDate.add(const Duration(days: 140)));
+    });
+
+    test('daysUntil ignores the time component', () {
+      final now = DateTime(2025, 1, 1, 23, 59);
+      expect(daysUntil(now, DateTime(2025, 1, 4, 0, 1)), 3);
+      expect(daysUntil(now, DateTime(2024, 12, 30)), -2);
+    });
+
+    test('nextMilestone returns the first at/after the current week', () {
+      expect(nextMilestone(20)!.week, 20);
+      expect(nextMilestone(21)!.week, 24);
+      expect(nextMilestone(41), isNull);
     });
   });
 }
