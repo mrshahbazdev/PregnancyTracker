@@ -193,6 +193,40 @@ final memoriesProvider =
   return MemoriesNotifier(ref.watch(localStoreProvider));
 });
 
+/// Pregnancy journal entries, newest first.
+class JournalNotifier extends StateNotifier<List<JournalEntry>> {
+  JournalNotifier(this._store) : super(_sorted(_store.loadJournal()));
+
+  final LocalStore _store;
+
+  static List<JournalEntry> _sorted(List<JournalEntry> list) {
+    final copy = [...list]..sort((a, b) => b.date.compareTo(a.date));
+    return copy;
+  }
+
+  Future<void> add(JournalEntry e) async {
+    state = _sorted([...state, e]);
+    await _store.saveJournal(state);
+  }
+
+  Future<void> update(JournalEntry e) async {
+    state = _sorted([
+      for (final j in state) if (j.id == e.id) e else j,
+    ]);
+    await _store.saveJournal(state);
+  }
+
+  Future<void> remove(String id) async {
+    state = state.where((e) => e.id != id).toList();
+    await _store.saveJournal(state);
+  }
+}
+
+final journalProvider =
+    StateNotifierProvider<JournalNotifier, List<JournalEntry>>((ref) {
+  return JournalNotifier(ref.watch(localStoreProvider));
+});
+
 /// Prenatal appointments, soonest first.
 class AppointmentsNotifier extends StateNotifier<List<Appointment>> {
   AppointmentsNotifier(this._store) : super(_sorted(_store.loadAppointments()));

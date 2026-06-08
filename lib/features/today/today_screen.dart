@@ -13,6 +13,7 @@ import '../insights/movement_insights.dart';
 import '../insights/movement_insights_screen.dart';
 import '../exercises/breathing_screen.dart';
 import '../safety/safety_checker_screen.dart';
+import '../journal/journal_screen.dart';
 import '../memory/time_capsule_screen.dart';
 import '../names/baby_names_screen.dart';
 import '../settings/settings_screen.dart';
@@ -423,6 +424,16 @@ class _QuickActions extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const PrepHubScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.menu_book_rounded,
+                  color: AppColors.primaryDark),
+              title: const Text('Pregnancy Journal'),
+              subtitle: const Text('Write & keep week-by-week memories'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const JournalScreen()),
               ),
             ),
             ListTile(

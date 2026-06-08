@@ -315,3 +315,60 @@ class MemoryEntry {
         body: json['body'] as String,
       );
 }
+
+/// A free-form pregnancy journal entry, tagged with the pregnancy week it was
+/// written and an optional mood (1–5, 0 = unset).
+@immutable
+class JournalEntry {
+  const JournalEntry({
+    required this.id,
+    required this.date,
+    required this.title,
+    required this.body,
+    this.week,
+    this.mood = 0,
+  });
+
+  final String id;
+  final DateTime date;
+  final String title;
+  final String body;
+
+  /// Pregnancy week at time of writing (null if unknown).
+  final int? week;
+
+  /// Mood on a 1 (low) – 5 (great) scale; 0 means not set.
+  final int mood;
+
+  JournalEntry copyWith({
+    String? title,
+    String? body,
+    int? mood,
+  }) =>
+      JournalEntry(
+        id: id,
+        date: date,
+        title: title ?? this.title,
+        body: body ?? this.body,
+        week: week,
+        mood: mood ?? this.mood,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'date': date.toIso8601String(),
+        'title': title,
+        'body': body,
+        'week': week,
+        'mood': mood,
+      };
+
+  factory JournalEntry.fromJson(Map<String, dynamic> json) => JournalEntry(
+        id: json['id'] as String,
+        date: DateTime.parse(json['date'] as String),
+        title: json['title'] as String,
+        body: json['body'] as String,
+        week: json['week'] as int?,
+        mood: json['mood'] as int? ?? 0,
+      );
+}
