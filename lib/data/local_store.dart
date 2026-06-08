@@ -20,6 +20,7 @@ class LocalStore {
   static const _kMemories = 'memories';
   static const _kAppointments = 'appointments';
   static const _kBirthPlan = 'birth_plan';
+  static const _kWellness = 'wellness_days';
 
   static Future<LocalStore> create() async {
     final prefs = await SharedPreferences.getInstance();
@@ -110,4 +111,11 @@ class LocalStore {
 
   Future<void> saveBirthPlan(BirthPlan plan) =>
       _prefs.setString(_kBirthPlan, jsonEncode(plan.toJson()));
+
+  // ---- Daily wellness ----
+  List<WellnessDay> loadWellnessDays() =>
+      _readList(_kWellness).map(WellnessDay.fromJson).toList();
+
+  Future<void> saveWellnessDays(List<WellnessDay> days) =>
+      _writeList(_kWellness, days.map((e) => e.toJson()).toList());
 }

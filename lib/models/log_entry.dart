@@ -100,6 +100,52 @@ class Measurement {
       );
 }
 
+/// One day's wellness log: water glasses, prenatal vitamin, and mood.
+/// Keyed by [dateKey] (yyyy-MM-dd) so there is exactly one entry per day.
+@immutable
+class WellnessDay {
+  const WellnessDay({
+    required this.dateKey,
+    this.water = 0,
+    this.vitamin = false,
+    this.mood = 0,
+  });
+
+  final String dateKey;
+
+  /// Glasses of water logged today.
+  final int water;
+
+  /// Whether the prenatal vitamin was taken.
+  final bool vitamin;
+
+  /// Mood on a 1 (low) – 5 (great) scale; 0 means not set.
+  final int mood;
+
+  bool get hasActivity => water > 0 || vitamin || mood > 0;
+
+  WellnessDay copyWith({int? water, bool? vitamin, int? mood}) => WellnessDay(
+        dateKey: dateKey,
+        water: water ?? this.water,
+        vitamin: vitamin ?? this.vitamin,
+        mood: mood ?? this.mood,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'dateKey': dateKey,
+        'water': water,
+        'vitamin': vitamin,
+        'mood': mood,
+      };
+
+  factory WellnessDay.fromJson(Map<String, dynamic> json) => WellnessDay(
+        dateKey: json['dateKey'] as String,
+        water: json['water'] as int? ?? 0,
+        vitamin: json['vitamin'] as bool? ?? false,
+        mood: json['mood'] as int? ?? 0,
+      );
+}
+
 /// The user's birth-plan answers (question id -> chosen option) plus free notes.
 @immutable
 class BirthPlan {

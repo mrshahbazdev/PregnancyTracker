@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pregnancy_tracker/core/baby_data.dart';
 import 'package:pregnancy_tracker/core/birth_plan_data.dart';
 import 'package:pregnancy_tracker/core/checklist_data.dart';
+import 'package:pregnancy_tracker/core/wellness.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -210,6 +211,67 @@ void main() {
     test('empty plan produces no section headers', () {
       final text = buildBirthPlanText(const BirthPlan());
       expect(text.trim(), 'My Birth Plan');
+    });
+  });
+
+  group('Daily wellness', () {
+    test('dateKey is zero-padded yyyy-MM-dd', () {
+      expect(wellnessDateKey(DateTime(2026, 6, 3)), '2026-06-03');
+      expect(wellnessDateKey(DateTime(2026, 12, 25)), '2026-12-25');
+    });
+
+    test('WellnessDay hasActivity and copyWith', () {
+      const empty = WellnessDay(dateKey: '2026-06-06');
+      expect(empty.hasActivity, isFalse);
+      expect(empty.copyWith(water: 1).hasActivity, isTrue);
+      expect(empty.copyWith(vitamin: true).hasActivity, isTrue);
+      expect(empty.copyWith(mood: 3).hasActivity, isTrue);
+      final updated = empty.copyWith(water: 2);
+      expect(updated.dateKey, empty.dateKey);
+      expect(updated.water, 2);
+    });
+
+    test('WellnessDay JSON round-trip', () {
+      const day =
+          WellnessDay(dateKey: '2026-06-06', water: 5, vitamin: true, mood: 4);
+      final restored = WellnessDay.fromJson(day.toJson());
+      expect(restored.dateKey, day.dateKey);
+      expect(restored.water, 5);
+      expect(restored.vitamin, isTrue);
+      expect(restored.mood, 4);
+    });
+
+    test('streak counts consecutive active days ending today', () {
+      final today = DateTime(2026, 6, 6);
+      String key(int back) =>
+          wellnessDateKey(today.subtract(Duration(days: back)));
+      final days = [
+        WellnessDay(dateKey: key(0), water: 3),
+        WellnessDay(dateKey: key(1), vitamin: true),
+        WellnessDay(dateKey: key(2), mood: 4),
+        // gap at day 3
+        WellnessDay(dateKey: key(4), water: 1),
+      ];
+      expect(wellnessStreak(days, today), 3);
+    });
+
+    test('streak still holds when today not yet logged', () {
+      final today = DateTime(2026, 6, 6);
+      String key(int back) =>
+          wellnessDateKey(today.subtract(Duration(days: back)));
+      final days = [
+        WellnessDay(dateKey: key(1), vitamin: true),
+        WellnessDay(dateKey: key(2), water: 2),
+      ];
+      expect(wellnessStreak(days, today), 2);
+    });
+
+    test('empty log has zero streak; inactive entries do not count', () {
+      expect(wellnessStreak(const [], DateTime(2026, 6, 6)), 0);
+      final days = [
+        WellnessDay(dateKey: wellnessDateKey(DateTime(2026, 6, 6))),
+      ];
+      expect(wellnessStreak(days, DateTime(2026, 6, 6)), 0);
     });
   });
 

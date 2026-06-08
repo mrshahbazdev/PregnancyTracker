@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/checklist_data.dart';
+import '../core/wellness.dart';
 import '../data/local_store.dart';
 import '../models/log_entry.dart';
 import '../models/pregnancy_profile.dart';
@@ -235,4 +236,46 @@ class BirthPlanNotifier extends StateNotifier<BirthPlan> {
 final birthPlanProvider =
     StateNotifierProvider<BirthPlanNotifier, BirthPlan>((ref) {
   return BirthPlanNotifier(ref.watch(localStoreProvider));
+});
+
+/// Daily wellness log (water, vitamin, mood) — one [WellnessDay] per date,
+/// persisted on every change.
+class WellnessNotifier extends StateNotifier<List<WellnessDay>> {
+  WellnessNotifier(this._store) : super(_store.loadWellnessDays());
+
+  final LocalStore _store;
+
+  /// Today's entry, creating an empty one (not yet persisted) if absent.
+  WellnessDay today() {
+    final key = wellnessDateKey(DateTime.now());
+    for (final d in state) {
+      if (d.dateKey == key) return d;
+    }
+    return WellnessDay(dateKey: key);
+  }
+
+  Future<void> _upsert(WellnessDay day) async {
+    final next = [
+      for (final d in state)
+        if (d.dateKey != day.dateKey) d,
+      day,
+    ];
+    state = next;
+    await _store.saveWellnessDays(next);
+  }
+
+  Future<void> addWater(int delta) async {
+    final t = today();
+    final next = (t.water + delta).clamp(0, 30);
+    await _upsert(t.copyWith(water: next));
+  }
+
+  Future<void> setVitamin(bool taken) => _upsert(today().copyWith(vitamin: taken));
+
+  Future<void> setMood(int mood) => _upsert(today().copyWith(mood: mood));
+}
+
+final wellnessProvider =
+    StateNotifierProvider<WellnessNotifier, List<WellnessDay>>((ref) {
+  return WellnessNotifier(ref.watch(localStoreProvider));
 });
