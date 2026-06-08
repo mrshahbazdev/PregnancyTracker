@@ -27,6 +27,7 @@ class LocalStore {
   static const _kNameFavorites = 'babynames_favorites';
   static const _kNameCustom = 'babynames_custom';
   static const _kBreathingCounts = 'breathing_counts';
+  static const _kWeightGoal = 'weight_goal';
 
   static Future<LocalStore> create() async {
     final prefs = await SharedPreferences.getInstance();
@@ -109,6 +110,19 @@ class LocalStore {
 
   Future<void> saveJournal(List<JournalEntry> items) =>
       _writeList(_kJournal, items.map((e) => e.toJson()).toList());
+
+  // ---- Weight-gain goal config ----
+  WeightGoalConfig? loadWeightGoal() {
+    final raw = _prefs.getString(_kWeightGoal);
+    if (raw == null) return null;
+    return WeightGoalConfig.fromJson(
+        jsonDecode(raw) as Map<String, dynamic>);
+  }
+
+  Future<void> saveWeightGoal(WeightGoalConfig config) =>
+      _prefs.setString(_kWeightGoal, jsonEncode(config.toJson()));
+
+  Future<void> clearWeightGoal() => _prefs.remove(_kWeightGoal);
 
   // ---- Appointments ----
   List<Appointment> loadAppointments() =>

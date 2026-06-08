@@ -372,3 +372,27 @@ class JournalEntry {
         mood: json['mood'] as int? ?? 0,
       );
 }
+
+/// User-entered baseline for the weight-gain goal: pre-pregnancy weight and
+/// height. Stored once; combined with logged weights to track progress.
+@immutable
+class WeightGoalConfig {
+  const WeightGoalConfig({
+    required this.prePregnancyKg,
+    required this.heightCm,
+  });
+
+  final double prePregnancyKg;
+  final double heightCm;
+
+  Map<String, dynamic> toJson() => {
+        'prePregnancyKg': prePregnancyKg,
+        'heightCm': heightCm,
+      };
+
+  factory WeightGoalConfig.fromJson(Map<String, dynamic> json) =>
+      WeightGoalConfig(
+        prePregnancyKg: (json['prePregnancyKg'] as num).toDouble(),
+        heightCm: (json['heightCm'] as num).toDouble(),
+      );
+}
