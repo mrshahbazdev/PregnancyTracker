@@ -761,3 +761,102 @@ class PostpartumEntry {
         note: json['note'] as String? ?? '',
       );
 }
+
+/// Whether a baby-care log is a feed or a diaper change.
+enum BabyCareKind { feed, diaper }
+
+/// How the baby was fed.
+enum FeedType { breast, bottle, unset }
+
+extension FeedTypeLabel on FeedType {
+  String get label => switch (this) {
+        FeedType.breast => 'Breast',
+        FeedType.bottle => 'Bottle',
+        FeedType.unset => 'Feed',
+      };
+}
+
+/// Contents of a diaper change.
+enum DiaperType { wet, dirty, mixed }
+
+extension DiaperTypeLabel on DiaperType {
+  String get label => switch (this) {
+        DiaperType.wet => 'Wet',
+        DiaperType.dirty => 'Dirty',
+        DiaperType.mixed => 'Mixed',
+      };
+}
+
+/// A single newborn feed or diaper-change log.
+@immutable
+class BabyCareEntry {
+  const BabyCareEntry({
+    required this.id,
+    required this.time,
+    required this.kind,
+    this.feedType = FeedType.unset,
+    this.amountMl = 0,
+    this.diaperType = DiaperType.wet,
+    this.note = '',
+  });
+
+  final String id;
+  final DateTime time;
+  final BabyCareKind kind;
+
+  // Feed details (used when kind == feed).
+  final FeedType feedType;
+
+  /// Bottle amount in ml; 0 means unset (e.g. breastfeeding).
+  final double amountMl;
+
+  // Diaper details (used when kind == diaper).
+  final DiaperType diaperType;
+
+  final String note;
+
+  BabyCareEntry copyWith({
+    FeedType? feedType,
+    double? amountMl,
+    DiaperType? diaperType,
+    String? note,
+  }) =>
+      BabyCareEntry(
+        id: id,
+        time: time,
+        kind: kind,
+        feedType: feedType ?? this.feedType,
+        amountMl: amountMl ?? this.amountMl,
+        diaperType: diaperType ?? this.diaperType,
+        note: note ?? this.note,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'time': time.toIso8601String(),
+        'kind': kind.name,
+        'feedType': feedType.name,
+        'amountMl': amountMl,
+        'diaperType': diaperType.name,
+        'note': note,
+      };
+
+  factory BabyCareEntry.fromJson(Map<String, dynamic> json) => BabyCareEntry(
+        id: json['id'] as String,
+        time: DateTime.parse(json['time'] as String),
+        kind: BabyCareKind.values.firstWhere(
+          (k) => k.name == json['kind'],
+          orElse: () => BabyCareKind.feed,
+        ),
+        feedType: FeedType.values.firstWhere(
+          (f) => f.name == json['feedType'],
+          orElse: () => FeedType.unset,
+        ),
+        amountMl: (json['amountMl'] as num?)?.toDouble() ?? 0,
+        diaperType: DiaperType.values.firstWhere(
+          (d) => d.name == json['diaperType'],
+          orElse: () => DiaperType.wet,
+        ),
+        note: json['note'] as String? ?? '',
+      );
+}

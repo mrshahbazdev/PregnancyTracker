@@ -375,6 +375,40 @@ final cravingsProvider =
   return CravingsNotifier(ref.watch(localStoreProvider));
 });
 
+/// Newborn feed & diaper logs, newest first.
+class BabyCareNotifier extends StateNotifier<List<BabyCareEntry>> {
+  BabyCareNotifier(this._store) : super(_sorted(_store.loadBabyCare()));
+
+  final LocalStore _store;
+
+  static List<BabyCareEntry> _sorted(List<BabyCareEntry> list) {
+    final copy = [...list]..sort((a, b) => b.time.compareTo(a.time));
+    return copy;
+  }
+
+  Future<void> add(BabyCareEntry e) async {
+    state = _sorted([...state, e]);
+    await _store.saveBabyCare(state);
+  }
+
+  Future<void> update(BabyCareEntry e) async {
+    state = _sorted([
+      for (final c in state) if (c.id == e.id) e else c,
+    ]);
+    await _store.saveBabyCare(state);
+  }
+
+  Future<void> remove(String id) async {
+    state = state.where((e) => e.id != id).toList();
+    await _store.saveBabyCare(state);
+  }
+}
+
+final babyCareProvider =
+    StateNotifierProvider<BabyCareNotifier, List<BabyCareEntry>>((ref) {
+  return BabyCareNotifier(ref.watch(localStoreProvider));
+});
+
 /// Postpartum recovery day logs, newest first.
 class PostpartumNotifier extends StateNotifier<List<PostpartumEntry>> {
   PostpartumNotifier(this._store) : super(_sorted(_store.loadPostpartum()));
