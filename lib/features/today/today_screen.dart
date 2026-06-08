@@ -21,6 +21,7 @@ import '../budget/budget_screen.dart';
 import '../sleep/sleep_screen.dart';
 import '../cravings/cravings_screen.dart';
 import '../glossary/glossary_screen.dart';
+import '../affirmations/affirmations_screen.dart';
 import '../memory/time_capsule_screen.dart';
 import '../names/baby_names_screen.dart';
 import '../settings/settings_screen.dart';
@@ -451,6 +452,16 @@ class _QuickActions extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const CravingsScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.auto_awesome_rounded,
+                  color: AppColors.secondary),
+              title: const Text('Daily Affirmations'),
+              subtitle: const Text('Positive thoughts & favourites'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AffirmationsScreen()),
               ),
             ),
             ListTile(
