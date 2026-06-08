@@ -13,6 +13,7 @@ import '../insights/movement_insights.dart';
 import '../insights/movement_insights_screen.dart';
 import '../memory/time_capsule_screen.dart';
 import '../settings/settings_screen.dart';
+import '../wellness/wellness_screen.dart';
 
 class TodayScreen extends ConsumerWidget {
   const TodayScreen({super.key});
@@ -374,6 +375,16 @@ class _QuickActions extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const PrepHubScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.spa_rounded,
+                  color: AppColors.secondary),
+              title: const Text('Daily Wellness'),
+              subtitle: const Text('Water, vitamin & mood + streak'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const WellnessScreen()),
               ),
             ),
             ListTile(
