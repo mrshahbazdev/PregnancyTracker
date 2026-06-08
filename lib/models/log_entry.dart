@@ -462,3 +462,75 @@ class EmergencyContact {
         note: json['note'] as String? ?? '',
       );
 }
+
+/// Spending category for the baby budget planner.
+enum BudgetCategory { nursery, gear, clothing, feeding, medical, postpartum, other }
+
+extension BudgetCategoryLabel on BudgetCategory {
+  String get label => switch (this) {
+        BudgetCategory.nursery => 'Nursery',
+        BudgetCategory.gear => 'Baby gear',
+        BudgetCategory.clothing => 'Clothing',
+        BudgetCategory.feeding => 'Feeding',
+        BudgetCategory.medical => 'Medical',
+        BudgetCategory.postpartum => 'Postpartum',
+        BudgetCategory.other => 'Other',
+      };
+}
+
+/// A single planned baby/pregnancy expense, with budgeted vs actual spend.
+@immutable
+class BudgetItem {
+  const BudgetItem({
+    required this.id,
+    required this.title,
+    required this.category,
+    required this.budgeted,
+    this.spent = 0,
+    this.paid = false,
+  });
+
+  final String id;
+  final String title;
+  final BudgetCategory category;
+  final double budgeted;
+  final double spent;
+  final bool paid;
+
+  BudgetItem copyWith({
+    String? title,
+    BudgetCategory? category,
+    double? budgeted,
+    double? spent,
+    bool? paid,
+  }) =>
+      BudgetItem(
+        id: id,
+        title: title ?? this.title,
+        category: category ?? this.category,
+        budgeted: budgeted ?? this.budgeted,
+        spent: spent ?? this.spent,
+        paid: paid ?? this.paid,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'category': category.name,
+        'budgeted': budgeted,
+        'spent': spent,
+        'paid': paid,
+      };
+
+  factory BudgetItem.fromJson(Map<String, dynamic> json) => BudgetItem(
+        id: json['id'] as String,
+        title: json['title'] as String,
+        category: BudgetCategory.values.firstWhere(
+          (c) => c.name == json['category'],
+          orElse: () => BudgetCategory.other,
+        ),
+        budgeted: (json['budgeted'] as num).toDouble(),
+        spent: (json['spent'] as num?)?.toDouble() ?? 0,
+        paid: json['paid'] as bool? ?? false,
+      );
+}

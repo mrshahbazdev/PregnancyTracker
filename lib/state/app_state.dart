@@ -278,6 +278,35 @@ final contactsProvider =
   return ContactsNotifier(ref.watch(localStoreProvider));
 });
 
+/// Baby budget items (insertion order preserved).
+class BudgetNotifier extends StateNotifier<List<BudgetItem>> {
+  BudgetNotifier(this._store) : super(_store.loadBudget());
+
+  final LocalStore _store;
+
+  Future<void> add(BudgetItem item) async {
+    state = [...state, item];
+    await _store.saveBudget(state);
+  }
+
+  Future<void> update(BudgetItem item) async {
+    state = [
+      for (final e in state) if (e.id == item.id) item else e,
+    ];
+    await _store.saveBudget(state);
+  }
+
+  Future<void> remove(String id) async {
+    state = state.where((e) => e.id != id).toList();
+    await _store.saveBudget(state);
+  }
+}
+
+final budgetProvider =
+    StateNotifierProvider<BudgetNotifier, List<BudgetItem>>((ref) {
+  return BudgetNotifier(ref.watch(localStoreProvider));
+});
+
 /// Prenatal appointments, soonest first.
 class AppointmentsNotifier extends StateNotifier<List<Appointment>> {
   AppointmentsNotifier(this._store) : super(_sorted(_store.loadAppointments()));
