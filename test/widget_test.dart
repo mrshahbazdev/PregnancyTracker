@@ -10,6 +10,8 @@ import 'package:pregnancy_tracker/core/contractions.dart';
 import 'package:pregnancy_tracker/core/symptom_trends.dart';
 import 'package:pregnancy_tracker/core/kick_trends.dart';
 import 'package:pregnancy_tracker/core/breathing.dart';
+import 'package:pregnancy_tracker/core/safety_data.dart';
+import 'package:pregnancy_tracker/core/safety_search.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -669,6 +671,68 @@ void main() {
     test('curated patterns include kegel and labor', () {
       final ids = kBreathingPatterns.map((p) => p.id).toSet();
       expect(ids.containsAll({'box', '478', 'labor', 'kegel'}), isTrue);
+    });
+  });
+
+  group('Safety checker', () {
+    const items = [
+      SafetyItem(
+          name: 'Cooked salmon',
+          category: SafetyCategory.food,
+          rating: SafetyRating.safe,
+          note: 'Low-mercury fish, omega-3.'),
+      SafetyItem(
+          name: 'Alcohol',
+          category: SafetyCategory.drink,
+          rating: SafetyRating.avoid,
+          note: 'No safe amount.'),
+      SafetyItem(
+          name: 'Ibuprofen',
+          category: SafetyCategory.medicine,
+          rating: SafetyRating.avoid,
+          note: 'Avoid, especially third trimester.'),
+      SafetyItem(
+          name: 'Coffee',
+          category: SafetyCategory.drink,
+          rating: SafetyRating.caution,
+          note: 'Limit caffeine under 200 mg.'),
+    ];
+
+    test('empty query returns all, sorted by name', () {
+      final r = searchSafety(items);
+      expect(r.length, 4);
+      expect(r.first.name, 'Alcohol');
+      expect(r.last.name, 'Ibuprofen');
+    });
+
+    test('category filter narrows results', () {
+      final drinks = searchSafety(items, category: SafetyCategory.drink);
+      expect(drinks.map((e) => e.name).toSet(), {'Alcohol', 'Coffee'});
+    });
+
+    test('query matches name and note, case-insensitive', () {
+      expect(searchSafety(items, query: 'SALMON').single.name, 'Cooked salmon');
+      // "caffeine" only appears in the note for Coffee.
+      expect(searchSafety(items, query: 'caffeine').single.name, 'Coffee');
+    });
+
+    test('category + query combine', () {
+      final r = searchSafety(items,
+          category: SafetyCategory.medicine, query: 'avoid');
+      expect(r.single.name, 'Ibuprofen');
+    });
+
+    test('ratingBreakdown counts each rating', () {
+      final b = ratingBreakdown(items);
+      expect(b[SafetyRating.safe], 1);
+      expect(b[SafetyRating.caution], 1);
+      expect(b[SafetyRating.avoid], 2);
+    });
+
+    test('curated list spans all categories', () {
+      final cats = kSafetyItems.map((e) => e.category).toSet();
+      expect(cats, containsAll(SafetyCategory.values));
+      expect(kSafetyItems.length, greaterThan(20));
     });
   });
 }
