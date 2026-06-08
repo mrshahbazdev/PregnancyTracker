@@ -16,6 +16,7 @@ import '../safety/safety_checker_screen.dart';
 import '../journal/journal_screen.dart';
 import '../weight/weight_goal_screen.dart';
 import '../contacts/emergency_contacts_screen.dart';
+import '../milestones/milestones_screen.dart';
 import '../memory/time_capsule_screen.dart';
 import '../names/baby_names_screen.dart';
 import '../settings/settings_screen.dart';
@@ -426,6 +427,16 @@ class _QuickActions extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const PrepHubScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.timeline_rounded,
+                  color: AppColors.primary),
+              title: const Text('Milestones & Countdown'),
+              subtitle: const Text('Key moments & days to your due date'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const MilestonesScreen()),
               ),
             ),
             ListTile(
