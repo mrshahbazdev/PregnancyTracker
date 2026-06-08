@@ -7,6 +7,7 @@ import 'package:pregnancy_tracker/core/weekly_tips.dart';
 import 'package:pregnancy_tracker/core/baby_names_data.dart';
 import 'package:pregnancy_tracker/core/health_trends.dart';
 import 'package:pregnancy_tracker/core/contractions.dart';
+import 'package:pregnancy_tracker/core/symptom_trends.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -508,6 +509,57 @@ void main() {
       // The 3-hour-old one is outside the window, so count stays bounded.
       expect(s.recentCount, lessThanOrEqualTo(13));
       expect(s.meets511, isTrue);
+    });
+  });
+
+  group('Symptom & mood trends', () {
+    SymptomLog log(String date,
+            {List<String> symptoms = const [], int mood = 0}) =>
+        SymptomLog(
+          id: date,
+          date: DateTime.parse(date),
+          symptoms: symptoms,
+          mood: mood,
+        );
+
+    final logs = [
+      log('2024-01-01', symptoms: ['Nausea', 'Fatigue'], mood: 2),
+      log('2024-01-02', symptoms: ['Nausea'], mood: 4),
+      log('2024-01-02', symptoms: ['Fatigue', 'Headache'], mood: 0),
+      log('2024-01-03', symptoms: ['Nausea'], mood: 3),
+    ];
+
+    test('symptomCounts ranks by frequency then name', () {
+      final counts = symptomCounts(logs);
+      expect(counts.first.name, 'Nausea');
+      expect(counts.first.count, 3);
+      expect(counts[1].name, 'Fatigue');
+      expect(counts[1].count, 2);
+      expect(counts.last.name, 'Headache');
+      expect(counts.last.count, 1);
+    });
+
+    test('topSymptoms caps the list', () {
+      expect(topSymptoms(logs, n: 2).length, 2);
+      expect(topSymptoms(logs, n: 2).first.name, 'Nausea');
+    });
+
+    test('averageMood ignores unset moods', () {
+      // moods 2, 4, 3 -> avg 3.0 (the mood:0 entry is skipped)
+      expect(averageMood(logs), closeTo(3.0, 0.0001));
+      expect(averageMood([log('2024-01-01')]), isNull);
+    });
+
+    test('moodLogs returns only mood-set, oldest first', () {
+      final m = moodLogs(logs);
+      expect(m.length, 3);
+      expect(m.first.date.isBefore(m.last.date), isTrue);
+      expect(m.every((l) => l.mood > 0), isTrue);
+    });
+
+    test('loggedDays counts distinct calendar days', () {
+      expect(loggedDays(logs), 3);
+      expect(loggedDays(const []), 0);
     });
   });
 }
