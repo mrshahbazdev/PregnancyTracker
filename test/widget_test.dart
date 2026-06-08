@@ -17,6 +17,7 @@ import 'package:pregnancy_tracker/core/contacts.dart';
 import 'package:pregnancy_tracker/core/milestones.dart';
 import 'package:pregnancy_tracker/core/budget.dart';
 import 'package:pregnancy_tracker/core/sleep_stats.dart';
+import 'package:pregnancy_tracker/core/cravings_stats.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -1020,6 +1021,66 @@ void main() {
       });
       expect(bad.side, SleepSide.unset);
       expect(bad.quality, 0);
+    });
+  });
+
+  group('Cravings & aversions', () {
+    CravingEntry e(String id, String item, CravingKind kind,
+            [int intensity = 0]) =>
+        CravingEntry(
+            id: id,
+            date: DateTime(2025, 1, int.parse(id)),
+            item: item,
+            kind: kind,
+            intensity: intensity);
+
+    test('empty summary is zeroed', () {
+      final s = cravingsSummary(const []);
+      expect(s.cravings, 0);
+      expect(s.aversions, 0);
+      expect(s.total, 0);
+      expect(s.topItems, isEmpty);
+    });
+
+    test('counts kinds and ranks top items case-insensitively', () {
+      final s = cravingsSummary([
+        e('1', 'Mango', CravingKind.craving),
+        e('2', 'mango', CravingKind.craving),
+        e('3', 'Coffee', CravingKind.aversion),
+        e('4', 'Pickles', CravingKind.craving),
+      ]);
+      expect(s.cravings, 3);
+      expect(s.aversions, 1);
+      expect(s.total, 4);
+      expect(s.topItems.first, 'Mango'); // 2 logs, display keeps first casing
+      expect(s.topItems.length, 3);
+    });
+
+    test('CravingEntry round-trips and unknown kind falls back to craving',
+        () {
+      final entry = CravingEntry(
+          id: 'a',
+          date: DateTime(2025, 2, 3),
+          item: 'Lemon',
+          kind: CravingKind.aversion,
+          intensity: 4,
+          note: 'too sour',
+          week: 22);
+      final copy = CravingEntry.fromJson(entry.toJson());
+      expect(copy.item, 'Lemon');
+      expect(copy.kind, CravingKind.aversion);
+      expect(copy.intensity, 4);
+      expect(copy.week, 22);
+
+      final bad = CravingEntry.fromJson({
+        'id': 'x',
+        'date': DateTime(2025, 1, 1).toIso8601String(),
+        'item': 'Chips',
+        'kind': 'whatever',
+      });
+      expect(bad.kind, CravingKind.craving);
+      expect(bad.intensity, 0);
+      expect(bad.week, isNull);
     });
   });
 }

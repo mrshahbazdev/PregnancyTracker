@@ -19,6 +19,7 @@ import '../contacts/emergency_contacts_screen.dart';
 import '../milestones/milestones_screen.dart';
 import '../budget/budget_screen.dart';
 import '../sleep/sleep_screen.dart';
+import '../cravings/cravings_screen.dart';
 import '../memory/time_capsule_screen.dart';
 import '../names/baby_names_screen.dart';
 import '../settings/settings_screen.dart';
@@ -439,6 +440,16 @@ class _QuickActions extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const SleepScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.restaurant_rounded,
+                  color: AppColors.secondary),
+              title: const Text('Cravings & Aversions'),
+              subtitle: const Text('Log foods you crave or avoid'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const CravingsScreen()),
               ),
             ),
             ListTile(

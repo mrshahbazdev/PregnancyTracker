@@ -607,3 +607,76 @@ class SleepEntry {
         note: json['note'] as String? ?? '',
       );
 }
+
+/// Whether a logged food item is a craving or an aversion.
+enum CravingKind { craving, aversion }
+
+extension CravingKindLabel on CravingKind {
+  String get label =>
+      this == CravingKind.craving ? 'Craving' : 'Aversion';
+}
+
+/// A logged pregnancy craving or aversion for a food/drink.
+@immutable
+class CravingEntry {
+  const CravingEntry({
+    required this.id,
+    required this.date,
+    required this.item,
+    required this.kind,
+    this.intensity = 0,
+    this.note = '',
+    this.week,
+  });
+
+  final String id;
+  final DateTime date;
+  final String item;
+  final CravingKind kind;
+
+  /// Strength on a 1 (mild) – 5 (intense) scale; 0 means unset.
+  final int intensity;
+  final String note;
+
+  /// Pregnancy week at time of logging (null if unknown).
+  final int? week;
+
+  CravingEntry copyWith({
+    String? item,
+    CravingKind? kind,
+    int? intensity,
+    String? note,
+  }) =>
+      CravingEntry(
+        id: id,
+        date: date,
+        item: item ?? this.item,
+        kind: kind ?? this.kind,
+        intensity: intensity ?? this.intensity,
+        note: note ?? this.note,
+        week: week,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'date': date.toIso8601String(),
+        'item': item,
+        'kind': kind.name,
+        'intensity': intensity,
+        'note': note,
+        'week': week,
+      };
+
+  factory CravingEntry.fromJson(Map<String, dynamic> json) => CravingEntry(
+        id: json['id'] as String,
+        date: DateTime.parse(json['date'] as String),
+        item: json['item'] as String,
+        kind: CravingKind.values.firstWhere(
+          (k) => k.name == json['kind'],
+          orElse: () => CravingKind.craving,
+        ),
+        intensity: json['intensity'] as int? ?? 0,
+        note: json['note'] as String? ?? '',
+        week: json['week'] as int?,
+      );
+}

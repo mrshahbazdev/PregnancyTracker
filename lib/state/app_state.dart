@@ -341,6 +341,40 @@ final sleepProvider =
   return SleepNotifier(ref.watch(localStoreProvider));
 });
 
+/// Cravings & aversions, newest first.
+class CravingsNotifier extends StateNotifier<List<CravingEntry>> {
+  CravingsNotifier(this._store) : super(_sorted(_store.loadCravings()));
+
+  final LocalStore _store;
+
+  static List<CravingEntry> _sorted(List<CravingEntry> list) {
+    final copy = [...list]..sort((a, b) => b.date.compareTo(a.date));
+    return copy;
+  }
+
+  Future<void> add(CravingEntry e) async {
+    state = _sorted([...state, e]);
+    await _store.saveCravings(state);
+  }
+
+  Future<void> update(CravingEntry e) async {
+    state = _sorted([
+      for (final c in state) if (c.id == e.id) e else c,
+    ]);
+    await _store.saveCravings(state);
+  }
+
+  Future<void> remove(String id) async {
+    state = state.where((e) => e.id != id).toList();
+    await _store.saveCravings(state);
+  }
+}
+
+final cravingsProvider =
+    StateNotifierProvider<CravingsNotifier, List<CravingEntry>>((ref) {
+  return CravingsNotifier(ref.watch(localStoreProvider));
+});
+
 /// Prenatal appointments, soonest first.
 class AppointmentsNotifier extends StateNotifier<List<Appointment>> {
   AppointmentsNotifier(this._store) : super(_sorted(_store.loadAppointments()));
