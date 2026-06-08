@@ -396,3 +396,69 @@ class WeightGoalConfig {
         heightCm: (json['heightCm'] as num).toDouble(),
       );
 }
+
+/// The kind of an emergency / important contact.
+enum ContactKind { doctor, hospital, partner, family, ambulance, other }
+
+extension ContactKindMeta on ContactKind {
+  String get label => switch (this) {
+        ContactKind.doctor => 'Doctor / OB',
+        ContactKind.hospital => 'Hospital',
+        ContactKind.partner => 'Partner',
+        ContactKind.family => 'Family',
+        ContactKind.ambulance => 'Ambulance',
+        ContactKind.other => 'Other',
+      };
+}
+
+/// A saved important/emergency contact with a phone number for quick dialing.
+@immutable
+class EmergencyContact {
+  const EmergencyContact({
+    required this.id,
+    required this.name,
+    required this.phone,
+    this.kind = ContactKind.other,
+    this.note = '',
+  });
+
+  final String id;
+  final String name;
+  final String phone;
+  final ContactKind kind;
+  final String note;
+
+  EmergencyContact copyWith({
+    String? name,
+    String? phone,
+    ContactKind? kind,
+    String? note,
+  }) =>
+      EmergencyContact(
+        id: id,
+        name: name ?? this.name,
+        phone: phone ?? this.phone,
+        kind: kind ?? this.kind,
+        note: note ?? this.note,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'phone': phone,
+        'kind': kind.name,
+        'note': note,
+      };
+
+  factory EmergencyContact.fromJson(Map<String, dynamic> json) =>
+      EmergencyContact(
+        id: json['id'] as String,
+        name: json['name'] as String,
+        phone: json['phone'] as String,
+        kind: ContactKind.values.firstWhere(
+          (k) => k.name == json['kind'],
+          orElse: () => ContactKind.other,
+        ),
+        note: json['note'] as String? ?? '',
+      );
+}

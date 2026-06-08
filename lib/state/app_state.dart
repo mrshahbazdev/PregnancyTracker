@@ -249,6 +249,35 @@ final weightGoalProvider =
   return WeightGoalNotifier(ref.watch(localStoreProvider));
 });
 
+/// Saved emergency / important contacts (insertion order preserved).
+class ContactsNotifier extends StateNotifier<List<EmergencyContact>> {
+  ContactsNotifier(this._store) : super(_store.loadContacts());
+
+  final LocalStore _store;
+
+  Future<void> add(EmergencyContact c) async {
+    state = [...state, c];
+    await _store.saveContacts(state);
+  }
+
+  Future<void> update(EmergencyContact c) async {
+    state = [
+      for (final e in state) if (e.id == c.id) c else e,
+    ];
+    await _store.saveContacts(state);
+  }
+
+  Future<void> remove(String id) async {
+    state = state.where((e) => e.id != id).toList();
+    await _store.saveContacts(state);
+  }
+}
+
+final contactsProvider =
+    StateNotifierProvider<ContactsNotifier, List<EmergencyContact>>((ref) {
+  return ContactsNotifier(ref.watch(localStoreProvider));
+});
+
 /// Prenatal appointments, soonest first.
 class AppointmentsNotifier extends StateNotifier<List<Appointment>> {
   AppointmentsNotifier(this._store) : super(_sorted(_store.loadAppointments()));

@@ -13,6 +13,7 @@ import 'package:pregnancy_tracker/core/breathing.dart';
 import 'package:pregnancy_tracker/core/safety_data.dart';
 import 'package:pregnancy_tracker/core/safety_search.dart';
 import 'package:pregnancy_tracker/core/weight_goal.dart';
+import 'package:pregnancy_tracker/core/contacts.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -818,6 +819,54 @@ void main() {
       final copy = WeightGoalConfig.fromJson(c.toJson());
       expect(copy.prePregnancyKg, 58.5);
       expect(copy.heightCm, 162);
+    });
+  });
+
+  group('Emergency contacts', () {
+    test('sanitizePhone keeps digits and a leading +', () {
+      expect(sanitizePhone('+92 (300) 123-4567'), '+923001234567');
+      expect(sanitizePhone('0300 123 4567'), '03001234567');
+      expect(sanitizePhone('1-800-FLOWERS'), '1800'); // letters dropped
+    });
+
+    test('telUri builds a tel: scheme and rejects empty numbers', () {
+      final uri = telUri('+92 300 1234567');
+      expect(uri, isNotNull);
+      expect(uri!.scheme, 'tel');
+      expect(uri.path, '+923001234567');
+      expect(telUri('   '), isNull);
+      expect(telUri('abc'), isNull);
+    });
+
+    test('EmergencyContact round-trips and copyWith updates fields', () {
+      const c = EmergencyContact(
+        id: 'c1',
+        name: 'Dr. Ayesha',
+        phone: '+923001234567',
+        kind: ContactKind.doctor,
+        note: 'Maternity ward',
+      );
+      final copy = EmergencyContact.fromJson(c.toJson());
+      expect(copy.name, 'Dr. Ayesha');
+      expect(copy.kind, ContactKind.doctor);
+      expect(copy.note, 'Maternity ward');
+
+      final updated = c.copyWith(name: 'Dr. A.', kind: ContactKind.hospital);
+      expect(updated.id, 'c1');
+      expect(updated.name, 'Dr. A.');
+      expect(updated.kind, ContactKind.hospital);
+      expect(updated.phone, c.phone); // unchanged
+    });
+
+    test('unknown kind falls back to other', () {
+      final c = EmergencyContact.fromJson({
+        'id': 'x',
+        'name': 'n',
+        'phone': '123',
+        'kind': 'spaceship',
+      });
+      expect(c.kind, ContactKind.other);
+      expect(c.note, '');
     });
   });
 }
