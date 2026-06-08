@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/baby_names_data.dart';
 import '../models/log_entry.dart';
 import '../models/pregnancy_profile.dart';
 
@@ -21,6 +22,8 @@ class LocalStore {
   static const _kAppointments = 'appointments';
   static const _kBirthPlan = 'birth_plan';
   static const _kWellness = 'wellness_days';
+  static const _kNameFavorites = 'babynames_favorites';
+  static const _kNameCustom = 'babynames_custom';
 
   static Future<LocalStore> create() async {
     final prefs = await SharedPreferences.getInstance();
@@ -118,4 +121,17 @@ class LocalStore {
 
   Future<void> saveWellnessDays(List<WellnessDay> days) =>
       _writeList(_kWellness, days.map((e) => e.toJson()).toList());
+
+  // ---- Baby names ----
+  List<String> loadFavoriteNames() =>
+      _prefs.getStringList(_kNameFavorites) ?? const [];
+
+  Future<void> saveFavoriteNames(List<String> keys) =>
+      _prefs.setStringList(_kNameFavorites, keys);
+
+  List<BabyName> loadCustomNames() =>
+      _readList(_kNameCustom).map(BabyName.fromJson).toList();
+
+  Future<void> saveCustomNames(List<BabyName> names) =>
+      _writeList(_kNameCustom, names.map((e) => e.toJson()).toList());
 }

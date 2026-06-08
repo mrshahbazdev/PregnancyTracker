@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/baby_names_data.dart';
 import '../core/checklist_data.dart';
 import '../core/wellness.dart';
 import '../data/local_store.dart';
@@ -278,4 +279,65 @@ class WellnessNotifier extends StateNotifier<List<WellnessDay>> {
 final wellnessProvider =
     StateNotifierProvider<WellnessNotifier, List<WellnessDay>>((ref) {
   return WellnessNotifier(ref.watch(localStoreProvider));
+});
+
+/// Baby-name shortlist: user-added custom names plus the set of favourited
+/// name keys (curated or custom). Persisted on every change.
+class BabyNamesState {
+  const BabyNamesState({this.custom = const [], this.favorites = const {}});
+
+  final List<BabyName> custom;
+  final Set<String> favorites;
+
+  /// Curated names first, then user-added ones (newest custom last).
+  List<BabyName> get all => [...kBabyNames, ...custom];
+
+  bool isFavorite(BabyName n) => favorites.contains(n.key);
+
+  BabyNamesState copyWith({List<BabyName>? custom, Set<String>? favorites}) =>
+      BabyNamesState(
+        custom: custom ?? this.custom,
+        favorites: favorites ?? this.favorites,
+      );
+}
+
+class BabyNamesNotifier extends StateNotifier<BabyNamesState> {
+  BabyNamesNotifier(this._store)
+      : super(BabyNamesState(
+          custom: _store.loadCustomNames(),
+          favorites: _store.loadFavoriteNames().toSet(),
+        ));
+
+  final LocalStore _store;
+
+  Future<void> toggleFavorite(BabyName n) async {
+    final next = {...state.favorites};
+    if (!next.add(n.key)) next.remove(n.key);
+    state = state.copyWith(favorites: next);
+    await _store.saveFavoriteNames(next.toList());
+  }
+
+  /// Adds a custom name if it isn't already in the list. Returns false if a
+  /// name with the same key already exists (curated or custom).
+  Future<bool> addCustom(BabyName n) async {
+    final exists = state.all.any((e) => e.key == n.key);
+    if (n.name.trim().isEmpty || exists) return false;
+    final next = [...state.custom, n];
+    state = state.copyWith(custom: next);
+    await _store.saveCustomNames(next);
+    return true;
+  }
+
+  Future<void> removeCustom(BabyName n) async {
+    final next = state.custom.where((e) => e.key != n.key).toList();
+    final favs = {...state.favorites}..remove(n.key);
+    state = state.copyWith(custom: next, favorites: favs);
+    await _store.saveCustomNames(next);
+    await _store.saveFavoriteNames(favs.toList());
+  }
+}
+
+final babyNamesProvider =
+    StateNotifierProvider<BabyNamesNotifier, BabyNamesState>((ref) {
+  return BabyNamesNotifier(ref.watch(localStoreProvider));
 });
