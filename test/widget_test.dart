@@ -23,6 +23,7 @@ import 'package:pregnancy_tracker/core/glossary_search.dart';
 import 'package:pregnancy_tracker/core/affirmations_data.dart';
 import 'package:pregnancy_tracker/core/affirmation_of_day.dart';
 import 'package:pregnancy_tracker/core/postpartum_stats.dart';
+import 'package:pregnancy_tracker/core/baby_care_stats.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -1200,6 +1201,66 @@ void main() {
       expect(bad.bleeding, BleedingLevel.none);
       expect(bad.mood, 0);
       expect(bad.feeds, 0);
+    });
+  });
+
+  group('Baby care (feeds & diapers)', () {
+    final day = DateTime(2025, 4, 10);
+    BabyCareEntry feed(String id, {double ml = 0}) => BabyCareEntry(
+        id: id,
+        time: DateTime(2025, 4, 10, int.parse(id)),
+        kind: BabyCareKind.feed,
+        feedType: FeedType.bottle,
+        amountMl: ml);
+    BabyCareEntry diaper(String id, DiaperType t) => BabyCareEntry(
+        id: id,
+        time: DateTime(2025, 4, 10, int.parse(id)),
+        kind: BabyCareKind.diaper,
+        diaperType: t);
+
+    test('day summary counts feeds and wet/dirty (mixed counts both)', () {
+      final s = babyCareDaySummary([
+        feed('1', ml: 90),
+        feed('2'),
+        diaper('3', DiaperType.wet),
+        diaper('4', DiaperType.dirty),
+        diaper('5', DiaperType.mixed),
+        // different day — ignored
+        BabyCareEntry(
+            id: '9',
+            time: DateTime(2025, 4, 11, 9),
+            kind: BabyCareKind.feed),
+      ], day);
+      expect(s.feeds, 2);
+      expect(s.wetDiapers, 2); // wet + mixed
+      expect(s.dirtyDiapers, 2); // dirty + mixed
+    });
+
+    test('empty day summary is zeroed', () {
+      final s = babyCareDaySummary(const [], day);
+      expect(s.feeds, 0);
+      expect(s.wetDiapers, 0);
+      expect(s.dirtyDiapers, 0);
+    });
+
+    test('BabyCareEntry round-trips and unknown enums fall back', () {
+      final e = feed('6', ml: 120);
+      final copy = BabyCareEntry.fromJson(e.toJson());
+      expect(copy.kind, BabyCareKind.feed);
+      expect(copy.feedType, FeedType.bottle);
+      expect(copy.amountMl, 120);
+
+      final bad = BabyCareEntry.fromJson({
+        'id': 'x',
+        'time': DateTime(2025, 1, 1).toIso8601String(),
+        'kind': 'nap',
+        'feedType': 'spoon',
+        'diaperType': 'explosive',
+      });
+      expect(bad.kind, BabyCareKind.feed);
+      expect(bad.feedType, FeedType.unset);
+      expect(bad.diaperType, DiaperType.wet);
+      expect(bad.amountMl, 0);
     });
   });
 }
