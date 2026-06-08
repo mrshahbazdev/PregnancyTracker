@@ -12,6 +12,7 @@ import '../checklists/prep_hub_screen.dart';
 import '../insights/movement_insights.dart';
 import '../insights/movement_insights_screen.dart';
 import '../exercises/breathing_screen.dart';
+import '../safety/safety_checker_screen.dart';
 import '../memory/time_capsule_screen.dart';
 import '../names/baby_names_screen.dart';
 import '../settings/settings_screen.dart';
@@ -422,6 +423,17 @@ class _QuickActions extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const PrepHubScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.health_and_safety_rounded,
+                  color: AppColors.secondary),
+              title: const Text('Food & Medicine Safety'),
+              subtitle: const Text('What\'s safe to eat, drink & take'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                    builder: (_) => const SafetyCheckerScreen()),
               ),
             ),
             ListTile(
