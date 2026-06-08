@@ -66,6 +66,35 @@ class KickSession {
       );
 }
 
+/// A single recorded contraction (start + end). Gaps between contractions are
+/// derived from consecutive [start] times, so only the endpoints are stored.
+@immutable
+class Contraction {
+  const Contraction({
+    required this.id,
+    required this.start,
+    required this.end,
+  });
+
+  final String id;
+  final DateTime start;
+  final DateTime end;
+
+  Duration get duration => end.difference(start);
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'start': start.toIso8601String(),
+        'end': end.toIso8601String(),
+      };
+
+  factory Contraction.fromJson(Map<String, dynamic> json) => Contraction(
+        id: json['id'] as String,
+        start: DateTime.parse(json['start'] as String),
+        end: DateTime.parse(json['end'] as String),
+      );
+}
+
 /// A measurement entry (weight in kg, systolic/diastolic BP).
 @immutable
 class Measurement {
