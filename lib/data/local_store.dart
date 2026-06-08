@@ -32,6 +32,7 @@ class LocalStore {
   static const _kBudget = 'budget_items';
   static const _kSleep = 'sleep_entries';
   static const _kCravings = 'craving_entries';
+  static const _kAffirmationFavorites = 'affirmation_favorites';
 
   static Future<LocalStore> create() async {
     final prefs = await SharedPreferences.getInstance();
@@ -202,6 +203,13 @@ class LocalStore {
 
   Future<void> saveFavoriteNames(List<String> keys) =>
       _prefs.setStringList(_kNameFavorites, keys);
+
+  // ---- Affirmations ----
+  List<String> loadFavoriteAffirmations() =>
+      _prefs.getStringList(_kAffirmationFavorites) ?? const [];
+
+  Future<void> saveFavoriteAffirmations(List<String> ids) =>
+      _prefs.setStringList(_kAffirmationFavorites, ids);
 
   List<BabyName> loadCustomNames() =>
       _readList(_kNameCustom).map(BabyName.fromJson).toList();

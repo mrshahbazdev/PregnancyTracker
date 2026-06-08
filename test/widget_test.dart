@@ -20,6 +20,8 @@ import 'package:pregnancy_tracker/core/sleep_stats.dart';
 import 'package:pregnancy_tracker/core/cravings_stats.dart';
 import 'package:pregnancy_tracker/core/glossary_data.dart';
 import 'package:pregnancy_tracker/core/glossary_search.dart';
+import 'package:pregnancy_tracker/core/affirmations_data.dart';
+import 'package:pregnancy_tracker/core/affirmation_of_day.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -1117,6 +1119,30 @@ void main() {
       expect(keys, sorted);
 
       expect(searchGlossary(kGlossaryTerms, query: 'zzzznotahing'), isEmpty);
+    });
+  });
+
+  group('Affirmations', () {
+    test('curated data is non-empty with unique ids', () {
+      expect(kAffirmations, isNotEmpty);
+      final ids = kAffirmations.map((a) => a.id).toList();
+      expect(ids.toSet().length, ids.length);
+    });
+
+    test('affirmation of day is stable per date and rotates next day', () {
+      final d1 = DateTime(2025, 3, 10, 9);
+      final d1Later = DateTime(2025, 3, 10, 22);
+      final d2 = DateTime(2025, 3, 11, 1);
+      expect(affirmationOfDay(d1).id, affirmationOfDay(d1Later).id);
+      // With a multi-item pool consecutive days pick different entries.
+      expect(affirmationOfDay(d1).id, isNot(affirmationOfDay(d2).id));
+    });
+
+    test('rotation wraps around the pool length', () {
+      final pool = kAffirmations;
+      final base = DateTime(2025, 1, 1);
+      final wrapped = base.add(Duration(days: pool.length));
+      expect(affirmationOfDay(base).id, affirmationOfDay(wrapped).id);
     });
   });
 }

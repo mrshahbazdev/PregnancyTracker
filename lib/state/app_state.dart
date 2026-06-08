@@ -375,6 +375,28 @@ final cravingsProvider =
   return CravingsNotifier(ref.watch(localStoreProvider));
 });
 
+/// Favourited affirmation IDs.
+class AffirmationFavoritesNotifier extends StateNotifier<Set<String>> {
+  AffirmationFavoritesNotifier(this._store)
+      : super(_store.loadFavoriteAffirmations().toSet());
+
+  final LocalStore _store;
+
+  bool isFavorite(String id) => state.contains(id);
+
+  Future<void> toggle(String id) async {
+    final next = {...state};
+    if (!next.add(id)) next.remove(id);
+    state = next;
+    await _store.saveFavoriteAffirmations(next.toList());
+  }
+}
+
+final affirmationFavoritesProvider =
+    StateNotifierProvider<AffirmationFavoritesNotifier, Set<String>>((ref) {
+  return AffirmationFavoritesNotifier(ref.watch(localStoreProvider));
+});
+
 /// Prenatal appointments, soonest first.
 class AppointmentsNotifier extends StateNotifier<List<Appointment>> {
   AppointmentsNotifier(this._store) : super(_sorted(_store.loadAppointments()));
