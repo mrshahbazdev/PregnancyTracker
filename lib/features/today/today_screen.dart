@@ -14,6 +14,7 @@ import '../insights/movement_insights_screen.dart';
 import '../exercises/breathing_screen.dart';
 import '../safety/safety_checker_screen.dart';
 import '../journal/journal_screen.dart';
+import '../weight/weight_goal_screen.dart';
 import '../memory/time_capsule_screen.dart';
 import '../names/baby_names_screen.dart';
 import '../settings/settings_screen.dart';
@@ -424,6 +425,16 @@ class _QuickActions extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const PrepHubScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.monitor_weight_rounded,
+                  color: AppColors.secondary),
+              title: const Text('Weight-Gain Goal'),
+              subtitle: const Text('Healthy range from BMI + progress'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const WeightGoalScreen()),
               ),
             ),
             ListTile(

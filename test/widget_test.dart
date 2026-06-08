@@ -12,6 +12,7 @@ import 'package:pregnancy_tracker/core/kick_trends.dart';
 import 'package:pregnancy_tracker/core/breathing.dart';
 import 'package:pregnancy_tracker/core/safety_data.dart';
 import 'package:pregnancy_tracker/core/safety_search.dart';
+import 'package:pregnancy_tracker/core/weight_goal.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -775,6 +776,48 @@ void main() {
       expect(updated.title, 'Edited');
       expect(updated.mood, 3);
       expect(updated.body, entry.body); // unchanged
+    });
+  });
+
+  group('Weight-gain goal', () {
+    test('computes BMI and classifies categories', () {
+      // 60 kg at 165 cm -> ~22.0 (normal)
+      expect(bmi(60, 165), closeTo(22.04, 0.05));
+      expect(bmiCategory(17.0), BmiCategory.underweight);
+      expect(bmiCategory(22.0), BmiCategory.normal);
+      expect(bmiCategory(27.0), BmiCategory.overweight);
+      expect(bmiCategory(32.0), BmiCategory.obese);
+    });
+
+    test('recommends total gain per IOM category', () {
+      expect(recommendedTotalGain(BmiCategory.normal).lowKg, 11.5);
+      expect(recommendedTotalGain(BmiCategory.normal).highKg, 16.0);
+      expect(recommendedTotalGain(BmiCategory.obese).highKg, 9.0);
+    });
+
+    test('by-week gain grows with gestational age', () {
+      final early = recommendedGainByWeek(BmiCategory.normal, 8);
+      final mid = recommendedGainByWeek(BmiCategory.normal, 20);
+      final late = recommendedGainByWeek(BmiCategory.normal, 36);
+      expect(early.highKg, lessThan(mid.highKg));
+      expect(mid.highKg, lessThan(late.highKg));
+      // T1 ramp: week 13 is the full first-trimester gain.
+      expect(recommendedGainByWeek(BmiCategory.normal, 13).highKg,
+          closeTo(2.0, 0.001));
+    });
+
+    test('classifies status against the recommended range', () {
+      const range = GainRange(4.0, 6.0);
+      expect(gainStatus(range, 3.0), GainStatus.below);
+      expect(gainStatus(range, 5.0), GainStatus.onTrack);
+      expect(gainStatus(range, 7.0), GainStatus.above);
+    });
+
+    test('WeightGoalConfig round-trips through JSON', () {
+      const c = WeightGoalConfig(prePregnancyKg: 58.5, heightCm: 162);
+      final copy = WeightGoalConfig.fromJson(c.toJson());
+      expect(copy.prePregnancyKg, 58.5);
+      expect(copy.heightCm, 162);
     });
   });
 }

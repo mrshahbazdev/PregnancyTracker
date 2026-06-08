@@ -227,6 +227,28 @@ final journalProvider =
   return JournalNotifier(ref.watch(localStoreProvider));
 });
 
+/// Weight-gain goal baseline (pre-pregnancy weight + height); null until set.
+class WeightGoalNotifier extends StateNotifier<WeightGoalConfig?> {
+  WeightGoalNotifier(this._store) : super(_store.loadWeightGoal());
+
+  final LocalStore _store;
+
+  Future<void> set(WeightGoalConfig config) async {
+    state = config;
+    await _store.saveWeightGoal(config);
+  }
+
+  Future<void> clear() async {
+    state = null;
+    await _store.clearWeightGoal();
+  }
+}
+
+final weightGoalProvider =
+    StateNotifierProvider<WeightGoalNotifier, WeightGoalConfig?>((ref) {
+  return WeightGoalNotifier(ref.watch(localStoreProvider));
+});
+
 /// Prenatal appointments, soonest first.
 class AppointmentsNotifier extends StateNotifier<List<Appointment>> {
   AppointmentsNotifier(this._store) : super(_sorted(_store.loadAppointments()));
