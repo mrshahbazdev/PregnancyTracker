@@ -735,4 +735,46 @@ void main() {
       expect(kSafetyItems.length, greaterThan(20));
     });
   });
+
+  group('Journal entry', () {
+    final entry = JournalEntry(
+      id: 'j1',
+      date: DateTime.parse('2024-05-10T08:30:00'),
+      title: 'Felt the first kick!',
+      body: 'A tiny flutter this morning.',
+      week: 18,
+      mood: 5,
+    );
+
+    test('round-trips through JSON', () {
+      final copy = JournalEntry.fromJson(entry.toJson());
+      expect(copy.id, entry.id);
+      expect(copy.date, entry.date);
+      expect(copy.title, entry.title);
+      expect(copy.body, entry.body);
+      expect(copy.week, 18);
+      expect(copy.mood, 5);
+    });
+
+    test('defaults week to null and mood to 0 when absent', () {
+      final j = JournalEntry.fromJson({
+        'id': 'x',
+        'date': '2024-01-01T00:00:00',
+        'title': 't',
+        'body': 'b',
+      });
+      expect(j.week, isNull);
+      expect(j.mood, 0);
+    });
+
+    test('copyWith preserves id, date & week but updates fields', () {
+      final updated = entry.copyWith(title: 'Edited', mood: 3);
+      expect(updated.id, entry.id);
+      expect(updated.date, entry.date);
+      expect(updated.week, entry.week);
+      expect(updated.title, 'Edited');
+      expect(updated.mood, 3);
+      expect(updated.body, entry.body); // unchanged
+    });
+  });
 }
