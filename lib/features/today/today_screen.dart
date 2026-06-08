@@ -15,6 +15,7 @@ import '../memory/time_capsule_screen.dart';
 import '../names/baby_names_screen.dart';
 import '../settings/settings_screen.dart';
 import '../tips/weekly_tips_screen.dart';
+import '../trends/health_trends_screen.dart';
 import '../wellness/wellness_screen.dart';
 
 class TodayScreen extends ConsumerWidget {
@@ -367,6 +368,16 @@ class _QuickActions extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const WeeklyTipsScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.show_chart_rounded,
+                  color: AppColors.secondary),
+              title: const Text('Health Trends'),
+              subtitle: const Text('Weight & blood pressure over time'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const HealthTrendsScreen()),
               ),
             ),
             ListTile(

@@ -5,6 +5,7 @@ import 'package:pregnancy_tracker/core/checklist_data.dart';
 import 'package:pregnancy_tracker/core/wellness.dart';
 import 'package:pregnancy_tracker/core/weekly_tips.dart';
 import 'package:pregnancy_tracker/core/baby_names_data.dart';
+import 'package:pregnancy_tracker/core/health_trends.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -373,6 +374,58 @@ void main() {
       expect(st.isFavorite(kBabyNames.first), isTrue);
       expect(
           st.isFavorite(const BabyName(name: 'Nope', gender: 'girl')), isFalse);
+    });
+  });
+
+  group('Health trends', () {
+    Measurement m(String date, {double? w, int? sys, int? dia}) => Measurement(
+          id: date,
+          date: DateTime.parse(date),
+          weightKg: w,
+          systolic: sys,
+          diastolic: dia,
+        );
+
+    test('classifyBp thresholds', () {
+      expect(classifyBp(118, 75).severity, BpSeverity.normal);
+      expect(classifyBp(132, 78).severity, BpSeverity.elevated);
+      expect(classifyBp(120, 82).severity, BpSeverity.elevated);
+      expect(classifyBp(145, 85).severity, BpSeverity.high);
+      expect(classifyBp(150, 95).severity, BpSeverity.high);
+      expect(classifyBp(162, 100).severity, BpSeverity.severe);
+      expect(classifyBp(130, 112).severity, BpSeverity.severe);
+    });
+
+    test('series are filtered and sorted oldest-first', () {
+      final items = [
+        m('2024-03-01', w: 60.0),
+        m('2024-02-01', w: 58.0, sys: 118, dia: 76),
+        m('2024-02-15', sys: 122, dia: 80),
+      ];
+      final w = weightSeries(items);
+      expect(w.length, 2);
+      expect(w.first.date.isBefore(w.last.date), isTrue);
+
+      final b = bpSeries(items);
+      expect(b.length, 2);
+      expect(b.first.date.isBefore(b.last.date), isTrue);
+    });
+
+    test('weightChangeKg and latest helpers', () {
+      final items = [
+        m('2024-01-01', w: 55.0),
+        m('2024-02-01', w: 57.5),
+        m('2024-03-01', w: 60.0, sys: 120, dia: 80),
+      ];
+      expect(weightChangeKg(items), closeTo(5.0, 1e-9));
+      expect(latestWeight(items)!.weightKg, 60.0);
+      expect(latestBp(items)!.systolic, 120);
+    });
+
+    test('weightChangeKg null with fewer than two weights', () {
+      expect(weightChangeKg([m('2024-01-01', w: 55.0)]), isNull);
+      expect(weightChangeKg([m('2024-01-01', sys: 120, dia: 80)]), isNull);
+      expect(latestBp([m('2024-01-01', w: 55.0)]), isNull);
     });
   });
 }
