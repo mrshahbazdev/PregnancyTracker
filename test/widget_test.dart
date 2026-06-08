@@ -16,6 +16,7 @@ import 'package:pregnancy_tracker/core/weight_goal.dart';
 import 'package:pregnancy_tracker/core/contacts.dart';
 import 'package:pregnancy_tracker/core/milestones.dart';
 import 'package:pregnancy_tracker/core/budget.dart';
+import 'package:pregnancy_tracker/core/sleep_stats.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -973,6 +974,52 @@ void main() {
       expect(toggled.paid, isTrue);
       expect(toggled.spent, 360);
       expect(toggled.budgeted, 300); // unchanged
+    });
+  });
+
+  group('Sleep tracker', () {
+    SleepEntry entry(String id, double hours, int quality,
+            [SleepSide side = SleepSide.unset]) =>
+        SleepEntry(
+            id: id,
+            date: DateTime(2025, 1, int.parse(id)),
+            hours: hours,
+            quality: quality,
+            side: side);
+
+    test('empty stats are zeroed', () {
+      final s = sleepStats(const []);
+      expect(s.nights, 0);
+      expect(s.avgHours, 0);
+      expect(s.avgQuality, 0);
+    });
+
+    test('averages hours over all nights, quality over rated nights', () {
+      final s = sleepStats([
+        entry('1', 8, 4),
+        entry('2', 6, 0), // quality unset -> excluded from quality avg
+        entry('3', 7, 2),
+      ]);
+      expect(s.nights, 3);
+      expect(s.avgHours, closeTo(7, 0.001)); // (8+6+7)/3
+      expect(s.avgQuality, closeTo(3, 0.001)); // (4+2)/2
+    });
+
+    test('SleepEntry round-trips and unknown side falls back to unset', () {
+      final e = entry('5', 7.5, 5, SleepSide.left);
+      final copy = SleepEntry.fromJson(e.toJson());
+      expect(copy.hours, 7.5);
+      expect(copy.quality, 5);
+      expect(copy.side, SleepSide.left);
+
+      final bad = SleepEntry.fromJson({
+        'id': 'x',
+        'date': DateTime(2025, 1, 1).toIso8601String(),
+        'hours': 6,
+        'side': 'sideways',
+      });
+      expect(bad.side, SleepSide.unset);
+      expect(bad.quality, 0);
     });
   });
 }
