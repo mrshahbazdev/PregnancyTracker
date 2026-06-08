@@ -15,6 +15,7 @@ import 'package:pregnancy_tracker/core/safety_search.dart';
 import 'package:pregnancy_tracker/core/weight_goal.dart';
 import 'package:pregnancy_tracker/core/contacts.dart';
 import 'package:pregnancy_tracker/core/milestones.dart';
+import 'package:pregnancy_tracker/core/budget.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -906,6 +907,72 @@ void main() {
       expect(nextMilestone(20)!.week, 20);
       expect(nextMilestone(21)!.week, 24);
       expect(nextMilestone(41), isNull);
+    });
+  });
+
+  group('Baby budget', () {
+    final items = [
+      const BudgetItem(
+          id: '1',
+          title: 'Crib',
+          category: BudgetCategory.nursery,
+          budgeted: 200,
+          spent: 180,
+          paid: true),
+      const BudgetItem(
+          id: '2',
+          title: 'Stroller',
+          category: BudgetCategory.gear,
+          budgeted: 300,
+          spent: 350),
+      const BudgetItem(
+          id: '3',
+          title: 'Onesies',
+          category: BudgetCategory.clothing,
+          budgeted: 50,
+          spent: 0),
+    ];
+
+    test('summarize totals budgeted and spent', () {
+      final s = summarize(items);
+      expect(s.budgeted, 550);
+      expect(s.spent, 530);
+      expect(s.remaining, 20);
+      expect(s.overBudget, isFalse);
+      expect(s.progress, closeTo(530 / 550, 0.001));
+    });
+
+    test('over-budget and zero-budget progress are handled', () {
+      final over = summarize([items[1]]); // 350 spent / 300
+      expect(over.overBudget, isTrue);
+      expect(over.remaining, -50);
+      expect(over.progress, 1.0); // clamped
+
+      const empty = BudgetSummary(budgeted: 0, spent: 0);
+      expect(empty.progress, 0);
+    });
+
+    test('summarizeByCategory only includes used categories', () {
+      final byCat = summarizeByCategory(items);
+      expect(byCat.keys, containsAll([
+        BudgetCategory.nursery,
+        BudgetCategory.gear,
+        BudgetCategory.clothing,
+      ]));
+      expect(byCat.containsKey(BudgetCategory.medical), isFalse);
+      expect(byCat[BudgetCategory.gear]!.spent, 350);
+    });
+
+    test('BudgetItem round-trips and copyWith toggles paid', () {
+      final copy = BudgetItem.fromJson(items[0].toJson());
+      expect(copy.title, 'Crib');
+      expect(copy.category, BudgetCategory.nursery);
+      expect(copy.paid, isTrue);
+
+      final toggled = items[1].copyWith(paid: true, spent: 360);
+      expect(toggled.paid, isTrue);
+      expect(toggled.spent, 360);
+      expect(toggled.budgeted, 300); // unchanged
     });
   });
 }
