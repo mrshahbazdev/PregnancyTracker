@@ -16,6 +16,7 @@ import '../names/baby_names_screen.dart';
 import '../settings/settings_screen.dart';
 import '../tips/weekly_tips_screen.dart';
 import '../trends/health_trends_screen.dart';
+import '../trends/kick_history_screen.dart';
 import '../trends/symptom_trends_screen.dart';
 import '../wellness/wellness_screen.dart';
 
@@ -379,6 +380,16 @@ class _QuickActions extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const HealthTrendsScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.sports_soccer_rounded,
+                  color: AppColors.primaryDark),
+              title: const Text('Kick History & Trends'),
+              subtitle: const Text('Saved kick sessions over time'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const KickHistoryScreen()),
               ),
             ),
             ListTile(

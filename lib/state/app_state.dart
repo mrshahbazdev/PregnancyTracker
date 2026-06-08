@@ -77,6 +77,11 @@ class KickSessionsNotifier extends StateNotifier<List<KickSession>> {
     state = _sorted([...state, session]);
     await _store.saveKickSessions(state);
   }
+
+  Future<void> remove(String id) async {
+    state = state.where((e) => e.id != id).toList();
+    await _store.saveKickSessions(state);
+  }
 }
 
 final kickSessionsProvider =

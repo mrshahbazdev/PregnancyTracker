@@ -8,6 +8,7 @@ import 'package:pregnancy_tracker/core/baby_names_data.dart';
 import 'package:pregnancy_tracker/core/health_trends.dart';
 import 'package:pregnancy_tracker/core/contractions.dart';
 import 'package:pregnancy_tracker/core/symptom_trends.dart';
+import 'package:pregnancy_tracker/core/kick_trends.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -560,6 +561,62 @@ void main() {
     test('loggedDays counts distinct calendar days', () {
       expect(loggedDays(logs), 3);
       expect(loggedDays(const []), 0);
+    });
+  });
+
+  group('Kick trends', () {
+    KickSession ks(String date, {required int kicks, required int secs}) =>
+        KickSession(
+          id: date,
+          start: DateTime.parse(date),
+          durationSeconds: secs,
+          kicks: kicks,
+        );
+
+    test('empty input yields safe defaults', () {
+      final t = KickTrends.from(const []);
+      expect(t.totalSessions, 0);
+      expect(t.averageKicks, 0);
+      expect(t.averageMinutesToTen, isNull);
+      expect(t.bestKicks, 0);
+      expect(t.lastSession, isNull);
+    });
+
+    test('aggregates count, average, best & last session', () {
+      final sessions = [
+        ks('2024-01-01T09:00:00', kicks: 10, secs: 600), // 10 min to 10
+        ks('2024-01-02T09:00:00', kicks: 12, secs: 1200), // 20 min to 10
+        ks('2024-01-03T09:00:00', kicks: 6, secs: 1800), // never reached 10
+      ];
+      final t = KickTrends.from(sessions);
+      expect(t.totalSessions, 3);
+      expect(t.averageKicks, closeTo((10 + 12 + 6) / 3, 0.0001));
+      expect(t.bestKicks, 12);
+      // Average over the two sessions that reached 10: (10 + 20) / 2 = 15 min.
+      expect(t.averageMinutesToTen, closeTo(15.0, 0.0001));
+      expect(t.lastSession!.id, '2024-01-03T09:00:00');
+    });
+
+    test('averageMinutesToTen null when no session reaches 10', () {
+      final t = KickTrends.from([ks('2024-01-01', kicks: 5, secs: 600)]);
+      expect(t.averageMinutesToTen, isNull);
+    });
+
+    test('kickSeries sorts oldest-first', () {
+      final s = kickSeries([
+        ks('2024-01-03', kicks: 8, secs: 100),
+        ks('2024-01-01', kicks: 8, secs: 100),
+        ks('2024-01-02', kicks: 8, secs: 100),
+      ]);
+      expect(s.first.id, '2024-01-01');
+      expect(s.last.id, '2024-01-03');
+    });
+
+    test('minutesToTen requires 10 kicks and a duration', () {
+      expect(minutesToTen(ks('2024-01-01', kicks: 10, secs: 300)),
+          closeTo(5.0, 0.0001));
+      expect(minutesToTen(ks('2024-01-01', kicks: 9, secs: 300)), isNull);
+      expect(minutesToTen(ks('2024-01-01', kicks: 10, secs: 0)), isNull);
     });
   });
 }
