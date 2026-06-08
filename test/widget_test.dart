@@ -9,6 +9,7 @@ import 'package:pregnancy_tracker/core/health_trends.dart';
 import 'package:pregnancy_tracker/core/contractions.dart';
 import 'package:pregnancy_tracker/core/symptom_trends.dart';
 import 'package:pregnancy_tracker/core/kick_trends.dart';
+import 'package:pregnancy_tracker/core/breathing.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -617,6 +618,57 @@ void main() {
           closeTo(5.0, 0.0001));
       expect(minutesToTen(ks('2024-01-01', kicks: 9, secs: 300)), isNull);
       expect(minutesToTen(ks('2024-01-01', kicks: 10, secs: 0)), isNull);
+    });
+  });
+
+  group('Breathing patterns', () {
+    const box = BreathingPattern(
+      id: 'box',
+      name: 'Box',
+      description: '',
+      cycles: 2,
+      phases: [
+        BreathPhase(BreathPhaseType.inhale, 4),
+        BreathPhase(BreathPhaseType.hold, 4),
+        BreathPhase(BreathPhaseType.exhale, 4),
+        BreathPhase(BreathPhaseType.holdAfterExhale, 4),
+      ],
+    );
+
+    test('cycle and total seconds', () {
+      expect(box.cycleSeconds, 16);
+      expect(box.totalSeconds, 32);
+    });
+
+    test('positionAt resolves phase within first cycle', () {
+      final p0 = positionAt(box, 0);
+      expect(p0.phase.type, BreathPhaseType.inhale);
+      expect(p0.secondsIntoPhase, 0);
+      expect(p0.secondsRemainingInPhase, 4);
+      expect(p0.cycleIndex, 0);
+      expect(p0.finished, isFalse);
+
+      final p5 = positionAt(box, 5); // 1s into the hold phase
+      expect(p5.phase.type, BreathPhaseType.hold);
+      expect(p5.secondsIntoPhase, 1);
+      expect(p5.secondsRemainingInPhase, 3);
+    });
+
+    test('positionAt advances cycle index', () {
+      final p = positionAt(box, 16); // start of 2nd cycle
+      expect(p.cycleIndex, 1);
+      expect(p.phase.type, BreathPhaseType.inhale);
+    });
+
+    test('positionAt marks finished at/after total', () {
+      expect(positionAt(box, 32).finished, isTrue);
+      expect(positionAt(box, 99).finished, isTrue);
+      expect(positionAt(box, 31).finished, isFalse);
+    });
+
+    test('curated patterns include kegel and labor', () {
+      final ids = kBreathingPatterns.map((p) => p.id).toSet();
+      expect(ids.containsAll({'box', '478', 'labor', 'kegel'}), isTrue);
     });
   });
 }
