@@ -25,6 +25,7 @@ class LocalStore {
   static const _kWellness = 'wellness_days';
   static const _kNameFavorites = 'babynames_favorites';
   static const _kNameCustom = 'babynames_custom';
+  static const _kBreathingCounts = 'breathing_counts';
 
   static Future<LocalStore> create() async {
     final prefs = await SharedPreferences.getInstance();
@@ -68,6 +69,17 @@ class LocalStore {
 
   Future<void> saveKickSessions(List<KickSession> sessions) =>
       _writeList(_kKicks, sessions.map((e) => e.toJson()).toList());
+
+  // ---- Breathing exercise completion counts (pattern id -> count) ----
+  Map<String, int> loadBreathingCounts() {
+    final raw = _prefs.getString(_kBreathingCounts);
+    if (raw == null) return {};
+    return (jsonDecode(raw) as Map<String, dynamic>)
+        .map((k, v) => MapEntry(k, v as int));
+  }
+
+  Future<void> saveBreathingCounts(Map<String, int> counts) =>
+      _prefs.setString(_kBreathingCounts, jsonEncode(counts));
 
   // ---- Contractions ----
   List<Contraction> loadContractions() =>

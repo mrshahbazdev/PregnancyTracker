@@ -89,6 +89,27 @@ final kickSessionsProvider =
   return KickSessionsNotifier(ref.watch(localStoreProvider));
 });
 
+/// Completed breathing/Kegel sessions per pattern id.
+class BreathingCountsNotifier extends StateNotifier<Map<String, int>> {
+  BreathingCountsNotifier(this._store) : super(_store.loadBreathingCounts());
+
+  final LocalStore _store;
+
+  int countFor(String patternId) => state[patternId] ?? 0;
+
+  int get total => state.values.fold(0, (a, b) => a + b);
+
+  Future<void> increment(String patternId) async {
+    state = {...state, patternId: countFor(patternId) + 1};
+    await _store.saveBreathingCounts(state);
+  }
+}
+
+final breathingCountsProvider =
+    StateNotifierProvider<BreathingCountsNotifier, Map<String, int>>((ref) {
+  return BreathingCountsNotifier(ref.watch(localStoreProvider));
+});
+
 /// Recorded contractions, newest first.
 class ContractionsNotifier extends StateNotifier<List<Contraction>> {
   ContractionsNotifier(this._store)
