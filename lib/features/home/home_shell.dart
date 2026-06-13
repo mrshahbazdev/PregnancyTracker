@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme.dart';
 import '../ai/ai_screen.dart';
 import '../baby3d/baby_3d_screen.dart';
+import '../more/more_screen.dart';
 import '../today/today_screen.dart';
 import '../tracking/tracking_screen.dart';
 
@@ -22,16 +23,18 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     Baby3DScreen(),
     TrackingScreen(),
     AiScreen(),
+    MoreScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: IndexedStack(index: _index, children: _screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
-        backgroundColor: AppColors.surface,
+        backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surface,
         indicatorColor: AppColors.primary.withValues(alpha: 0.16),
         destinations: const [
           NavigationDestination(
@@ -53,6 +56,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
             icon: Icon(Icons.auto_awesome_outlined),
             selectedIcon: Icon(Icons.auto_awesome_rounded),
             label: 'AI',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.grid_view_outlined),
+            selectedIcon: Icon(Icons.grid_view_rounded),
+            label: 'More',
           ),
         ],
       ),

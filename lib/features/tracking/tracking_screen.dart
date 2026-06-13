@@ -99,12 +99,18 @@ class _TrackItem extends StatelessWidget {
                             fontSize: 16, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 2),
                     Text(subtitle,
-                        style: const TextStyle(
-                            color: AppColors.textMuted, fontSize: 13)),
+                        style: TextStyle(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.textMutedDark
+                                : AppColors.textMuted,
+                            fontSize: 13)),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppColors.textMuted),
+              Icon(Icons.chevron_right,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.textMutedDark
+                      : AppColors.textMuted),
             ],
           ),
         ),

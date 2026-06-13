@@ -12,10 +12,20 @@ class PregnancyTrackerApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider);
+    final themeMode = ref.watch(themeModeProvider);
+
+    final flutterThemeMode = switch (themeMode) {
+      AppThemeMode.system => ThemeMode.system,
+      AppThemeMode.light => ThemeMode.light,
+      AppThemeMode.dark => ThemeMode.dark,
+    };
+
     return MaterialApp(
       title: 'Pregnancy Tracker',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: flutterThemeMode,
       home: profile == null ? const OnboardingScreen() : const HomeShell(),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:intl/intl.dart';
@@ -8,32 +9,10 @@ import '../../core/theme.dart';
 import '../../models/pregnancy_profile.dart';
 import '../../state/app_state.dart';
 import '../appointments/appointments_screen.dart';
-import '../checklists/prep_hub_screen.dart';
 import '../insights/movement_insights.dart';
 import '../insights/movement_insights_screen.dart';
-import '../exercises/breathing_screen.dart';
-import '../safety/safety_checker_screen.dart';
-import '../journal/journal_screen.dart';
-import '../weight/weight_goal_screen.dart';
-import '../contacts/emergency_contacts_screen.dart';
-import '../milestones/milestones_screen.dart';
-import '../budget/budget_screen.dart';
-import '../sleep/sleep_screen.dart';
-import '../cravings/cravings_screen.dart';
-import '../glossary/glossary_screen.dart';
-import '../affirmations/affirmations_screen.dart';
-import '../postpartum/postpartum_screen.dart';
-import '../babycare/baby_care_screen.dart';
-import '../growth/growth_screen.dart';
-import '../vaccination/vaccination_screen.dart';
-import '../babymilestones/baby_milestones_screen.dart';
-import '../memory/time_capsule_screen.dart';
-import '../names/baby_names_screen.dart';
 import '../settings/settings_screen.dart';
 import '../tips/weekly_tips_screen.dart';
-import '../trends/health_trends_screen.dart';
-import '../trends/kick_history_screen.dart';
-import '../trends/symptom_trends_screen.dart';
 import '../wellness/wellness_screen.dart';
 
 class TodayScreen extends ConsumerWidget {
@@ -48,6 +27,8 @@ class TodayScreen extends ConsumerWidget {
     final day = profile.currentDayOfWeek(now);
     final info = weekInfoFor(week);
     final greeting = profile.name.isEmpty ? 'Hello' : 'Hello, ${profile.name}';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mutedColor = isDark ? AppColors.textMutedDark : AppColors.textMuted;
 
     return Scaffold(
       appBar: AppBar(
@@ -61,27 +42,34 @@ class TodayScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-        children: [
-          Text(greeting,
-              style: const TextStyle(
-                  fontSize: 22, fontWeight: FontWeight.w800)),
-          Text(profile.trimester(now),
-              style: const TextStyle(color: AppColors.textMuted)),
-          const SizedBox(height: 20),
-          _ProgressCard(profile: profile, now: now, week: week, day: day),
-          const SizedBox(height: 16),
-          _BabySizeCard(info: info),
-          const SizedBox(height: 16),
-          _DevelopmentCard(info: info),
-          const SizedBox(height: 16),
-          const _MovementInsightCard(),
-          const SizedBox(height: 16),
-          const _NextAppointmentCard(),
-          const SizedBox(height: 16),
-          _QuickActions(),
-        ],
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: () async {
+          HapticFeedback.lightImpact();
+          await Future<void>.delayed(const Duration(milliseconds: 400));
+        },
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          children: [
+            Text(greeting,
+                style: const TextStyle(
+                    fontSize: 22, fontWeight: FontWeight.w800)),
+            Text(profile.trimester(now),
+                style: TextStyle(color: mutedColor)),
+            const SizedBox(height: 20),
+            _ProgressCard(profile: profile, now: now, week: week, day: day),
+            const SizedBox(height: 16),
+            _BabySizeCard(info: info),
+            const SizedBox(height: 16),
+            _DevelopmentCard(info: info),
+            const SizedBox(height: 16),
+            const _MovementInsightCard(),
+            const SizedBox(height: 16),
+            const _NextAppointmentCard(),
+            const SizedBox(height: 16),
+            _QuickActions(),
+          ],
+        ),
       ),
     );
   }
@@ -102,7 +90,21 @@ class _ProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final remaining = profile.daysRemaining(now);
-    return Card(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mutedColor = isDark ? AppColors.textMutedDark : AppColors.textMuted;
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary.withValues(alpha: isDark ? 0.25 : 0.12),
+            AppColors.secondary.withValues(alpha: isDark ? 0.20 : 0.08),
+          ],
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Row(
@@ -133,9 +135,9 @@ class _ProgressCard extends StatelessWidget {
                               fontSize: 28,
                               fontWeight: FontWeight.w900,
                               color: AppColors.primaryDark)),
-                      const Text('weeks',
+                      Text('weeks',
                           style: TextStyle(
-                              fontSize: 12, color: AppColors.textMuted)),
+                              fontSize: 12, color: mutedColor)),
                     ],
                   ),
                 ],
@@ -154,12 +156,12 @@ class _ProgressCard extends StatelessWidget {
                     remaining == 0
                         ? 'Your due date is here!'
                         : '$remaining days to go',
-                    style: const TextStyle(color: AppColors.textMuted),
+                    style: TextStyle(color: mutedColor),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     '${(profile.progress(now) * 100).round()}% complete',
-                    style: const TextStyle(color: AppColors.textMuted),
+                    style: TextStyle(color: mutedColor),
                   ),
                 ],
               ),
@@ -177,6 +179,9 @@ class _BabySizeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mutedColor = isDark ? AppColors.textMutedDark : AppColors.textMuted;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -186,7 +191,7 @@ class _BabySizeCard extends StatelessWidget {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.25),
+                color: AppColors.accent.withValues(alpha: isDark ? 0.30 : 0.25),
                 borderRadius: BorderRadius.circular(18),
               ),
               child: const Icon(Icons.eco_rounded,
@@ -197,8 +202,8 @@ class _BabySizeCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Baby is about the size of',
-                      style: TextStyle(color: AppColors.textMuted)),
+                  Text('Baby is about the size of',
+                      style: TextStyle(color: mutedColor)),
                   const SizedBox(height: 2),
                   Text(info.sizeComparison,
                       style: const TextStyle(
@@ -207,7 +212,7 @@ class _BabySizeCard extends StatelessWidget {
                   Text(
                     '${info.lengthCm.toStringAsFixed(1)} cm'
                     '${info.weightG > 0 ? ' · ${info.weightG} g' : ''}',
-                    style: const TextStyle(color: AppColors.textMuted),
+                    style: TextStyle(color: mutedColor),
                   ),
                 ],
               ),
@@ -259,6 +264,8 @@ class _MovementInsightCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final insights = ref.watch(movementInsightsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mutedColor = isDark ? AppColors.textMutedDark : AppColors.textMuted;
     final (color, icon) = switch (insights.status) {
       MovementStatus.learning => (AppColors.secondary, Icons.auto_graph_rounded),
       MovementStatus.normal => (const Color(0xFF4CAF82), Icons.favorite_rounded),
@@ -282,7 +289,7 @@ class _MovementInsightCard extends ConsumerWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.16),
+                  color: color.withValues(alpha: isDark ? 0.25 : 0.16),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(icon, color: color),
@@ -299,12 +306,12 @@ class _MovementInsightCard extends ConsumerWidget {
                     Text(insights.message,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: AppColors.textMuted, fontSize: 13)),
+                        style: TextStyle(
+                            color: mutedColor, fontSize: 13)),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppColors.textMuted),
+              Icon(Icons.chevron_right, color: mutedColor),
             ],
           ),
         ),
@@ -319,6 +326,9 @@ class _NextAppointmentCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final next = ref.watch(nextAppointmentProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mutedColor = isDark ? AppColors.textMutedDark : AppColors.textMuted;
+
     return Card(
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
@@ -333,7 +343,7 @@ class _NextAppointmentCard extends ConsumerWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.secondary.withValues(alpha: 0.16),
+                  color: AppColors.secondary.withValues(alpha: isDark ? 0.25 : 0.16),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(Icons.event_outlined,
@@ -355,13 +365,13 @@ class _NextAppointmentCard extends ConsumerWidget {
                               '${DateFormat('MMM d, h:mm a').format(next.dateTime)}',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: AppColors.textMuted, fontSize: 13),
+                      style: TextStyle(
+                          color: mutedColor, fontSize: 13),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppColors.textMuted),
+              Icon(Icons.chevron_right, color: mutedColor),
             ],
           ),
         ),
@@ -370,271 +380,103 @@ class _NextAppointmentCard extends ConsumerWidget {
   }
 }
 
+/// Streamlined quick actions: only the most relevant daily actions.
+/// All other features are accessible via the "More" tab.
 class _QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mutedColor = isDark ? AppColors.textMutedDark : AppColors.textMuted;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(4, 4, 0, 10),
+          child: Text('Quick actions',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        ),
+        Row(
           children: [
-            ListTile(
-              leading: const Icon(Icons.menu_book_rounded,
-                  color: AppColors.primary),
-              title: const Text('Weekly Tips'),
-              subtitle: const Text('Guidance for your baby & you each week'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const WeeklyTipsScreen()),
-              ),
+            _QuickActionChip(
+              icon: Icons.menu_book_rounded,
+              label: 'Weekly Tips',
+              color: AppColors.primary,
+              builder: (_) => const WeeklyTipsScreen(),
             ),
-            ListTile(
-              leading: const Icon(Icons.show_chart_rounded,
-                  color: AppColors.secondary),
-              title: const Text('Health Trends'),
-              subtitle: const Text('Weight & blood pressure over time'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const HealthTrendsScreen()),
-              ),
+            const SizedBox(width: 10),
+            _QuickActionChip(
+              icon: Icons.spa_rounded,
+              label: 'Wellness',
+              color: AppColors.secondary,
+              builder: (_) => const WellnessScreen(),
             ),
-            ListTile(
-              leading: const Icon(Icons.sports_soccer_rounded,
-                  color: AppColors.primaryDark),
-              title: const Text('Kick History & Trends'),
-              subtitle: const Text('Saved kick sessions over time'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const KickHistoryScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.insights_rounded,
-                  color: AppColors.primary),
-              title: const Text('Symptom & Mood Trends'),
-              subtitle: const Text('Common symptoms & mood over time'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                    builder: (_) => const SymptomTrendsScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.event_note_outlined,
-                  color: AppColors.secondary),
-              title: const Text('Appointments'),
-              subtitle: const Text('Manage prenatal visits & scans'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const AppointmentsScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.checklist_rounded,
-                  color: AppColors.primaryDark),
-              title: const Text('Prep & Checklists'),
-              subtitle: const Text('Hospital bag & pregnancy to-do'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PrepHubScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.bedtime_rounded,
-                  color: AppColors.secondary),
-              title: const Text('Sleep Tracker'),
-              subtitle: const Text('Log nightly rest, quality & side'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SleepScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.restaurant_rounded,
-                  color: AppColors.secondary),
-              title: const Text('Cravings & Aversions'),
-              subtitle: const Text('Log foods you crave or avoid'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const CravingsScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.auto_awesome_rounded,
-                  color: AppColors.secondary),
-              title: const Text('Daily Affirmations'),
-              subtitle: const Text('Positive thoughts & favourites'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const AffirmationsScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.menu_book_rounded,
-                  color: AppColors.secondary),
-              title: const Text('Pregnancy Glossary'),
-              subtitle: const Text('Common terms in plain language'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const GlossaryScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.child_friendly_rounded,
-                  color: AppColors.secondary),
-              title: const Text('Feeding & Diapers'),
-              subtitle: const Text('Log newborn feeds & diaper changes'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const BabyCareScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.straighten_rounded,
-                  color: AppColors.primary),
-              title: const Text('Baby Growth'),
-              subtitle: const Text('Track weight, height & head over time'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const GrowthScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.vaccines_rounded,
-                  color: AppColors.secondary),
-              title: const Text('Vaccination Schedule'),
-              subtitle: const Text('WHO/CDC immunizations with progress'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                    builder: (_) => const VaccinationScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.emoji_events_rounded,
-                  color: Colors.amber),
-              title: const Text('Baby Milestones'),
-              subtitle: const Text('Track first smile, steps & more'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                    builder: (_) => const BabyMilestonesScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.healing_rounded,
-                  color: AppColors.secondary),
-              title: const Text('Postpartum Recovery'),
-              subtitle: const Text('Log bleeding, mood, pain & feeds'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PostpartumScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.savings_rounded,
-                  color: AppColors.secondary),
-              title: const Text('Baby Budget'),
-              subtitle: const Text('Plan & track baby expenses'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const BudgetScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.timeline_rounded,
-                  color: AppColors.primary),
-              title: const Text('Milestones & Countdown'),
-              subtitle: const Text('Key moments & days to your due date'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const MilestonesScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.contact_phone_rounded,
-                  color: AppColors.primaryDark),
-              title: const Text('Emergency Contacts'),
-              subtitle: const Text('Doctor, hospital & partner — one tap away'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                    builder: (_) => const EmergencyContactsScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.monitor_weight_rounded,
-                  color: AppColors.secondary),
-              title: const Text('Weight-Gain Goal'),
-              subtitle: const Text('Healthy range from BMI + progress'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const WeightGoalScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.menu_book_rounded,
-                  color: AppColors.primaryDark),
-              title: const Text('Pregnancy Journal'),
-              subtitle: const Text('Write & keep week-by-week memories'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const JournalScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.health_and_safety_rounded,
-                  color: AppColors.secondary),
-              title: const Text('Food & Medicine Safety'),
-              subtitle: const Text('What\'s safe to eat, drink & take'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                    builder: (_) => const SafetyCheckerScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.self_improvement_rounded,
-                  color: AppColors.primary),
-              title: const Text('Breathing & Relaxation'),
-              subtitle: const Text('Guided breathing, labor & Kegel exercises'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const BreathingScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.spa_rounded,
-                  color: AppColors.secondary),
-              title: const Text('Daily Wellness'),
-              subtitle: const Text('Water, vitamin & mood + streak'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const WellnessScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.badge_outlined,
-                  color: AppColors.primaryDark),
-              title: const Text('Baby Names'),
-              subtitle: const Text('Browse, search & shortlist favourites'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const BabyNamesScreen()),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.book_outlined,
-                  color: AppColors.primary),
-              title: const Text('Time Capsule'),
-              subtitle: const Text('Save a memory for your baby'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                    builder: (_) => const TimeCapsuleScreen()),
-              ),
+            const SizedBox(width: 10),
+            _QuickActionChip(
+              icon: Icons.event_note_outlined,
+              label: 'Appointments',
+              color: AppColors.primaryDark,
+              builder: (_) => const AppointmentsScreen(),
             ),
           ],
+        ),
+        const SizedBox(height: 12),
+        Center(
+          child: Text(
+            'Explore all features in the More tab',
+            style: TextStyle(color: mutedColor, fontSize: 12),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _QuickActionChip extends StatelessWidget {
+  const _QuickActionChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.builder,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final WidgetBuilder builder;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Expanded(
+      child: Card(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: builder),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+            child: Column(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: isDark ? 0.25 : 0.14),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: color, size: 20),
+                ),
+                const SizedBox(height: 6),
+                Text(label,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 11.5, fontWeight: FontWeight.w700)),
+              ],
+            ),
+          ),
         ),
       ),
     );
