@@ -443,6 +443,28 @@ final growthProvider =
   return GrowthNotifier(ref.watch(localStoreProvider));
 });
 
+/// Completed vaccine IDs (persisted set).
+class VaccineDoneNotifier extends StateNotifier<Set<String>> {
+  VaccineDoneNotifier(this._store)
+      : super(_store.loadVaccineDone().toSet());
+
+  final LocalStore _store;
+
+  bool isDone(String id) => state.contains(id);
+
+  Future<void> toggle(String id) async {
+    final next = {...state};
+    if (!next.add(id)) next.remove(id);
+    state = next;
+    await _store.saveVaccineDone(next.toList());
+  }
+}
+
+final vaccineDoneProvider =
+    StateNotifierProvider<VaccineDoneNotifier, Set<String>>((ref) {
+  return VaccineDoneNotifier(ref.watch(localStoreProvider));
+});
+
 /// Postpartum recovery day logs, newest first.
 class PostpartumNotifier extends StateNotifier<List<PostpartumEntry>> {
   PostpartumNotifier(this._store) : super(_sorted(_store.loadPostpartum()));

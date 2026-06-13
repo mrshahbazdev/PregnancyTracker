@@ -25,6 +25,7 @@ import 'package:pregnancy_tracker/core/affirmation_of_day.dart';
 import 'package:pregnancy_tracker/core/postpartum_stats.dart';
 import 'package:pregnancy_tracker/core/baby_care_stats.dart';
 import 'package:pregnancy_tracker/core/growth_stats.dart';
+import 'package:pregnancy_tracker/core/vaccination_data.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -1348,6 +1349,40 @@ void main() {
       expect(growthRanges.first.label, 'Birth');
       expect(growthRanges.last.label, '12 months');
       expect(growthRanges.first.weightMinKg, 2.5);
+    });
+  });
+
+  // =========================================================================
+  // Vaccination schedule
+  // =========================================================================
+
+  group('Vaccination schedule', () {
+    test('schedule has expected vaccines across age brackets', () {
+      expect(vaccineSchedule.isNotEmpty, true);
+      expect(vaccineSchedule.length, greaterThanOrEqualTo(20));
+      // Birth vaccines exist
+      final birth =
+          vaccineSchedule.where((v) => v.ageMonths == 0).toList();
+      expect(birth.length, greaterThanOrEqualTo(2));
+    });
+
+    test('vaccineAgeBrackets returns unique ordered ages', () {
+      final brackets = vaccineAgeBrackets;
+      expect(brackets.first, 'Birth');
+      expect(brackets.last, '12 months');
+      expect(brackets.toSet().length, brackets.length);
+    });
+
+    test('vaccineById returns correct vaccine or null', () {
+      final hepb = vaccineById('hepb_birth');
+      expect(hepb, isNotNull);
+      expect(hepb!.name, contains('Hepatitis B'));
+      expect(vaccineById('nonexistent'), isNull);
+    });
+
+    test('all vaccine ids are unique', () {
+      final ids = vaccineSchedule.map((v) => v.id).toSet();
+      expect(ids.length, vaccineSchedule.length);
     });
   });
 }
