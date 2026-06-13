@@ -8,6 +8,8 @@ import '../../state/app_state.dart';
 import '../ai/ai_service.dart';
 import '../backup/backup_screen.dart';
 import '../notifications/notification_settings_screen.dart';
+import '../nutrition/nutrition_screen.dart';
+import '../sharing/partner_share_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -218,6 +220,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
                         builder: (_) => const BackupScreen()),
+                  ),
+                ),
+                const Divider(height: 1, indent: 16, endIndent: 16),
+                ListTile(
+                  leading: const Icon(Icons.restaurant_menu_rounded),
+                  title: const Text('Nutrition tracker'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const NutritionScreen()),
+                  ),
+                ),
+                const Divider(height: 1, indent: 16, endIndent: 16),
+                ListTile(
+                  leading: const Icon(Icons.favorite_rounded),
+                  title: const Text('Share with partner'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const PartnerShareScreen()),
                   ),
                 ),
               ],

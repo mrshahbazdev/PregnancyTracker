@@ -14,7 +14,9 @@ import '../cravings/cravings_screen.dart';
 import '../exercises/breathing_screen.dart';
 import '../glossary/glossary_screen.dart';
 import '../notifications/notification_settings_screen.dart';
+import '../nutrition/nutrition_screen.dart';
 import '../photos/bump_photos_screen.dart';
+import '../sharing/partner_share_screen.dart';
 import '../growth/growth_screen.dart';
 import '../journal/journal_screen.dart';
 import '../memory/time_capsule_screen.dart';
@@ -247,6 +249,12 @@ final _healthItems = [
     builder: (_) => const CravingsScreen(),
   ),
   _FeatureItem(
+    icon: Icons.restaurant_menu_rounded,
+    label: 'Nutrition',
+    color: Colors.green,
+    builder: (_) => const NutritionScreen(),
+  ),
+  _FeatureItem(
     icon: Icons.monitor_weight_rounded,
     label: 'Weight Goal',
     color: AppColors.primaryDark,
@@ -398,6 +406,12 @@ final _toolsItems = [
     label: 'Backup',
     color: AppColors.secondary,
     builder: (_) => const BackupScreen(),
+  ),
+  _FeatureItem(
+    icon: Icons.favorite_rounded,
+    label: 'Partner Share',
+    color: AppColors.accent,
+    builder: (_) => const PartnerShareScreen(),
   ),
 ];
 
