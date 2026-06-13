@@ -37,6 +37,7 @@ class LocalStore {
   static const _kBabyCare = 'babycare_entries';
   static const _kGrowth = 'growth_entries';
   static const _kVaccineDone = 'vaccine_done';
+  static const _kMilestoneDates = 'milestone_dates';
 
   static Future<LocalStore> create() async {
     final prefs = await SharedPreferences.getInstance();
@@ -188,6 +189,17 @@ class LocalStore {
 
   Future<void> saveVaccineDone(List<String> ids) =>
       _prefs.setStringList(_kVaccineDone, ids);
+
+  // ---- Baby milestone dates (id -> ISO date) ----
+  Map<String, String> loadMilestoneDates() {
+    final raw = _prefs.getString(_kMilestoneDates);
+    if (raw == null) return {};
+    return (jsonDecode(raw) as Map<String, dynamic>)
+        .map((k, v) => MapEntry(k, v as String));
+  }
+
+  Future<void> saveMilestoneDates(Map<String, String> dates) =>
+      _prefs.setString(_kMilestoneDates, jsonEncode(dates));
 
   // ---- Appointments ----
   List<Appointment> loadAppointments() =>

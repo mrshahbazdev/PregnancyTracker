@@ -26,6 +26,7 @@ import '../postpartum/postpartum_screen.dart';
 import '../babycare/baby_care_screen.dart';
 import '../growth/growth_screen.dart';
 import '../vaccination/vaccination_screen.dart';
+import '../babymilestones/baby_milestones_screen.dart';
 import '../memory/time_capsule_screen.dart';
 import '../names/baby_names_screen.dart';
 import '../settings/settings_screen.dart';
@@ -507,6 +508,17 @@ class _QuickActions extends StatelessWidget {
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(
                     builder: (_) => const VaccinationScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.emoji_events_rounded,
+                  color: Colors.amber),
+              title: const Text('Baby Milestones'),
+              subtitle: const Text('Track first smile, steps & more'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                    builder: (_) => const BabyMilestonesScreen()),
               ),
             ),
             ListTile(
