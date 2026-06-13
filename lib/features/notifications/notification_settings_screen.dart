@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme.dart';
-import '../../services/notification_service.dart';
+import '../../state/app_state.dart';
 
 class NotificationSettingsScreen extends ConsumerWidget {
   const NotificationSettingsScreen({super.key});
@@ -54,7 +54,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                       Switch(
                         value: prefs.wellnessEnabled,
                         onChanged: (v) => notifier.toggleWellness(v),
-                        activeColor: AppColors.primary,
+                        activeTrackColor: AppColors.primary,
                       ),
                     ],
                   ),
@@ -137,7 +137,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                       Switch(
                         value: prefs.weeklyEnabled,
                         onChanged: (v) => notifier.toggleWeekly(v),
-                        activeColor: AppColors.primary,
+                        activeTrackColor: AppColors.primary,
                       ),
                     ],
                   ),
@@ -179,7 +179,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                       Switch(
                         value: prefs.appointmentEnabled,
                         onChanged: (v) => notifier.toggleAppointment(v),
-                        activeColor: AppColors.primary,
+                        activeTrackColor: AppColors.primary,
                       ),
                     ],
                   ),

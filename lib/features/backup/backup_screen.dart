@@ -30,9 +30,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
         const SnackBar(content: Text('Backup created')),
       );
 
-      await SharePlus.instance.share(
-        ShareParams(files: [XFile(path)]),
-      );
+      await Share.shareXFiles([XFile(path)]);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

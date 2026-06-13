@@ -7,7 +7,9 @@ import '../core/wellness.dart';
 import '../data/local_store.dart';
 import '../models/bump_photo.dart';
 import '../models/log_entry.dart';
+import '../models/notification_prefs.dart';
 import '../models/pregnancy_profile.dart';
+import '../services/notification_service.dart';
 
 /// Provides the [LocalStore]. Overridden with a concrete instance in main().
 final localStoreProvider = Provider<LocalStore>((ref) {
@@ -802,4 +804,63 @@ class BumpPhotosNotifier extends StateNotifier<List<BumpPhoto>> {
 final bumpPhotosProvider =
     StateNotifierProvider<BumpPhotosNotifier, List<BumpPhoto>>((ref) {
   return BumpPhotosNotifier(ref.watch(localStoreProvider));
+});
+
+/// Notification preferences + scheduling.
+class NotificationPrefsNotifier extends StateNotifier<NotificationPrefs> {
+  NotificationPrefsNotifier(this._store)
+      : super(_store.loadNotificationPrefs());
+
+  final LocalStore _store;
+
+  Future<void> _persist() => _store.saveNotificationPrefs(state);
+
+  Future<void> toggleWellness(bool enabled) async {
+    state = state.copyWith(wellnessEnabled: enabled);
+    await _persist();
+    if (enabled) {
+      await NotificationService.instance.requestPermission();
+      await NotificationService.instance.scheduleDailyWellness(
+        hour: state.wellnessHour,
+        minute: state.wellnessMinute,
+      );
+    } else {
+      await NotificationService.instance.cancel(100);
+    }
+  }
+
+  Future<void> setWellnessTime(int hour, int minute) async {
+    state = state.copyWith(wellnessHour: hour, wellnessMinute: minute);
+    await _persist();
+    if (state.wellnessEnabled) {
+      await NotificationService.instance.scheduleDailyWellness(
+        hour: hour,
+        minute: minute,
+      );
+    }
+  }
+
+  Future<void> toggleWeekly(bool enabled) async {
+    state = state.copyWith(weeklyEnabled: enabled);
+    await _persist();
+    if (enabled) {
+      await NotificationService.instance.requestPermission();
+      await NotificationService.instance.scheduleWeeklyUpdate(
+        weekday: state.weeklyDay,
+        hour: state.weeklyHour,
+      );
+    } else {
+      await NotificationService.instance.cancel(200);
+    }
+  }
+
+  Future<void> toggleAppointment(bool enabled) async {
+    state = state.copyWith(appointmentEnabled: enabled);
+    await _persist();
+  }
+}
+
+final notificationPrefsProvider =
+    StateNotifierProvider<NotificationPrefsNotifier, NotificationPrefs>((ref) {
+  return NotificationPrefsNotifier(ref.watch(localStoreProvider));
 });

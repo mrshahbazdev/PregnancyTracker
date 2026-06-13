@@ -6,8 +6,8 @@ import '../core/baby_names_data.dart';
 import '../core/theme.dart';
 import '../models/bump_photo.dart';
 import '../models/log_entry.dart';
+import '../models/notification_prefs.dart';
 import '../models/pregnancy_profile.dart';
-import '../services/notification_service.dart';
 
 /// Lightweight JSON-backed persistence using SharedPreferences. This keeps the
 /// MVP offline-first and dependency-light; it can be swapped for a full local

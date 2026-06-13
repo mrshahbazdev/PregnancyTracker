@@ -192,7 +192,6 @@ class _PhotoDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final mutedColor = isDark ? AppColors.textMutedDark : AppColors.textMuted;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : Colors.black,

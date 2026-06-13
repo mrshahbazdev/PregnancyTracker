@@ -2,12 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-
-import '../data/local_store.dart';
 
 /// Notification channel IDs.
 class NotifChannel {
@@ -49,7 +45,6 @@ class NotificationService {
     await _plugin.initialize(settings);
     _initialized = true;
 
-    // Create Android notification channels.
     if (!kIsWeb && Platform.isAndroid) {
       final android = _plugin.resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>();
@@ -106,7 +101,6 @@ class NotificationService {
     return false;
   }
 
-  /// Schedule a daily wellness reminder.
   Future<void> scheduleDailyWellness({
     required int hour,
     required int minute,
@@ -125,11 +119,12 @@ class NotificationService {
         iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,
     );
   }
 
-  /// Schedule a weekly pregnancy update.
   Future<void> scheduleWeeklyUpdate({
     required int weekday,
     required int hour,
@@ -148,11 +143,12 @@ class NotificationService {
         iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
     );
   }
 
-  /// Schedule a one-time appointment reminder (1 hour before).
   Future<void> scheduleAppointmentReminder({
     required int id,
     required String title,
@@ -180,15 +176,15 @@ class NotificationService {
         iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 
-  /// Cancel all scheduled notifications.
   Future<void> cancelAll() async {
     await _plugin.cancelAll();
   }
 
-  /// Cancel a specific notification by ID.
   Future<void> cancel(int id) async {
     await _plugin.cancel(id);
   }
@@ -211,123 +207,3 @@ class NotificationService {
     return date;
   }
 }
-
-// ---- Notification preferences (persisted) ----
-
-class NotificationPrefs {
-  const NotificationPrefs({
-    this.wellnessEnabled = false,
-    this.wellnessHour = 9,
-    this.wellnessMinute = 0,
-    this.weeklyEnabled = false,
-    this.weeklyDay = DateTime.monday,
-    this.weeklyHour = 10,
-    this.appointmentEnabled = true,
-  });
-
-  final bool wellnessEnabled;
-  final int wellnessHour;
-  final int wellnessMinute;
-  final bool weeklyEnabled;
-  final int weeklyDay;
-  final int weeklyHour;
-  final bool appointmentEnabled;
-
-  NotificationPrefs copyWith({
-    bool? wellnessEnabled,
-    int? wellnessHour,
-    int? wellnessMinute,
-    bool? weeklyEnabled,
-    int? weeklyDay,
-    int? weeklyHour,
-    bool? appointmentEnabled,
-  }) =>
-      NotificationPrefs(
-        wellnessEnabled: wellnessEnabled ?? this.wellnessEnabled,
-        wellnessHour: wellnessHour ?? this.wellnessHour,
-        wellnessMinute: wellnessMinute ?? this.wellnessMinute,
-        weeklyEnabled: weeklyEnabled ?? this.weeklyEnabled,
-        weeklyDay: weeklyDay ?? this.weeklyDay,
-        weeklyHour: weeklyHour ?? this.weeklyHour,
-        appointmentEnabled: appointmentEnabled ?? this.appointmentEnabled,
-      );
-
-  Map<String, dynamic> toJson() => {
-        'wellnessEnabled': wellnessEnabled,
-        'wellnessHour': wellnessHour,
-        'wellnessMinute': wellnessMinute,
-        'weeklyEnabled': weeklyEnabled,
-        'weeklyDay': weeklyDay,
-        'weeklyHour': weeklyHour,
-        'appointmentEnabled': appointmentEnabled,
-      };
-
-  factory NotificationPrefs.fromJson(Map<String, dynamic> json) =>
-      NotificationPrefs(
-        wellnessEnabled: json['wellnessEnabled'] as bool? ?? false,
-        wellnessHour: json['wellnessHour'] as int? ?? 9,
-        wellnessMinute: json['wellnessMinute'] as int? ?? 0,
-        weeklyEnabled: json['weeklyEnabled'] as bool? ?? false,
-        weeklyDay: json['weeklyDay'] as int? ?? DateTime.monday,
-        weeklyHour: json['weeklyHour'] as int? ?? 10,
-        appointmentEnabled: json['appointmentEnabled'] as bool? ?? true,
-      );
-}
-
-/// Riverpod provider for notification preferences + scheduling.
-class NotificationPrefsNotifier extends StateNotifier<NotificationPrefs> {
-  NotificationPrefsNotifier(this._store) : super(_store.loadNotificationPrefs());
-
-  final LocalStore _store;
-
-  Future<void> _persist() => _store.saveNotificationPrefs(state);
-
-  Future<void> toggleWellness(bool enabled) async {
-    state = state.copyWith(wellnessEnabled: enabled);
-    await _persist();
-    if (enabled) {
-      await NotificationService.instance.requestPermission();
-      await NotificationService.instance.scheduleDailyWellness(
-        hour: state.wellnessHour,
-        minute: state.wellnessMinute,
-      );
-    } else {
-      await NotificationService.instance.cancel(100);
-    }
-  }
-
-  Future<void> setWellnessTime(int hour, int minute) async {
-    state = state.copyWith(wellnessHour: hour, wellnessMinute: minute);
-    await _persist();
-    if (state.wellnessEnabled) {
-      await NotificationService.instance.scheduleDailyWellness(
-        hour: hour,
-        minute: minute,
-      );
-    }
-  }
-
-  Future<void> toggleWeekly(bool enabled) async {
-    state = state.copyWith(weeklyEnabled: enabled);
-    await _persist();
-    if (enabled) {
-      await NotificationService.instance.requestPermission();
-      await NotificationService.instance.scheduleWeeklyUpdate(
-        weekday: state.weeklyDay,
-        hour: state.weeklyHour,
-      );
-    } else {
-      await NotificationService.instance.cancel(200);
-    }
-  }
-
-  Future<void> toggleAppointment(bool enabled) async {
-    state = state.copyWith(appointmentEnabled: enabled);
-    await _persist();
-  }
-}
-
-final notificationPrefsProvider =
-    StateNotifierProvider<NotificationPrefsNotifier, NotificationPrefs>((ref) {
-  return NotificationPrefsNotifier(ref.watch(localStoreProvider));
-});
