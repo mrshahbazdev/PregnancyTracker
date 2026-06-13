@@ -24,6 +24,7 @@ import '../glossary/glossary_screen.dart';
 import '../affirmations/affirmations_screen.dart';
 import '../postpartum/postpartum_screen.dart';
 import '../babycare/baby_care_screen.dart';
+import '../growth/growth_screen.dart';
 import '../memory/time_capsule_screen.dart';
 import '../names/baby_names_screen.dart';
 import '../settings/settings_screen.dart';
@@ -484,6 +485,16 @@ class _QuickActions extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const BabyCareScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.straighten_rounded,
+                  color: AppColors.primary),
+              title: const Text('Baby Growth'),
+              subtitle: const Text('Track weight, height & head over time'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const GrowthScreen()),
               ),
             ),
             ListTile(

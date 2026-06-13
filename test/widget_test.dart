@@ -24,6 +24,7 @@ import 'package:pregnancy_tracker/core/affirmations_data.dart';
 import 'package:pregnancy_tracker/core/affirmation_of_day.dart';
 import 'package:pregnancy_tracker/core/postpartum_stats.dart';
 import 'package:pregnancy_tracker/core/baby_care_stats.dart';
+import 'package:pregnancy_tracker/core/growth_stats.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -1261,6 +1262,92 @@ void main() {
       expect(bad.feedType, FeedType.unset);
       expect(bad.diaperType, DiaperType.wet);
       expect(bad.amountMl, 0);
+    });
+  });
+
+  // =========================================================================
+  // Baby growth tracker
+  // =========================================================================
+
+  group('Baby growth tracker', () {
+    test('growthSummary computes latest values and gain', () {
+      final entries = [
+        GrowthEntry(
+            id: '2',
+            date: DateTime(2025, 5, 1),
+            weightKg: 4.5,
+            heightCm: 55,
+            headCm: 37),
+        GrowthEntry(
+            id: '1',
+            date: DateTime(2025, 4, 1),
+            weightKg: 3.2,
+            heightCm: 50,
+            headCm: 34),
+      ];
+      final s = growthSummary(entries);
+      expect(s.totalMeasurements, 2);
+      expect(s.latestWeightKg, 4.5);
+      expect(s.latestHeightCm, 55);
+      expect(s.latestHeadCm, 37);
+      expect(s.weightGainKg, closeTo(1.3, 0.01));
+      expect(s.heightGainCm, 5);
+      expect(s.headGainCm, 3);
+    });
+
+    test('empty summary is zeroed', () {
+      final s = growthSummary(const []);
+      expect(s.totalMeasurements, 0);
+      expect(s.latestWeightKg, 0);
+      expect(s.weightGainKg, 0);
+    });
+
+    test('single entry has zero gain', () {
+      final s = growthSummary([
+        GrowthEntry(
+            id: '1',
+            date: DateTime(2025, 4, 1),
+            weightKg: 3.5,
+            heightCm: 50,
+            headCm: 35),
+      ]);
+      expect(s.totalMeasurements, 1);
+      expect(s.latestWeightKg, 3.5);
+      expect(s.weightGainKg, 0);
+    });
+
+    test('GrowthEntry JSON round-trip', () {
+      final e = GrowthEntry(
+        id: 'g1',
+        date: DateTime(2025, 5, 10),
+        weightKg: 3.75,
+        heightCm: 52.5,
+        headCm: 35.0,
+        note: 'checkup',
+      );
+      final copy = GrowthEntry.fromJson(e.toJson());
+      expect(copy.id, 'g1');
+      expect(copy.weightKg, 3.75);
+      expect(copy.heightCm, 52.5);
+      expect(copy.headCm, 35.0);
+      expect(copy.note, 'checkup');
+    });
+
+    test('GrowthEntry copyWith works', () {
+      final e = GrowthEntry(
+          id: 'g2', date: DateTime(2025, 6, 1), weightKg: 4.0);
+      final updated = e.copyWith(weightKg: 4.5, note: 'gained');
+      expect(updated.weightKg, 4.5);
+      expect(updated.note, 'gained');
+      expect(updated.id, 'g2');
+      expect(updated.heightCm, 0);
+    });
+
+    test('growthRanges has expected entries', () {
+      expect(growthRanges.length, 6);
+      expect(growthRanges.first.label, 'Birth');
+      expect(growthRanges.last.label, '12 months');
+      expect(growthRanges.first.weightMinKg, 2.5);
     });
   });
 }

@@ -35,6 +35,7 @@ class LocalStore {
   static const _kAffirmationFavorites = 'affirmation_favorites';
   static const _kPostpartum = 'postpartum_entries';
   static const _kBabyCare = 'babycare_entries';
+  static const _kGrowth = 'growth_entries';
 
   static Future<LocalStore> create() async {
     final prefs = await SharedPreferences.getInstance();
@@ -172,6 +173,13 @@ class LocalStore {
 
   Future<void> saveBabyCare(List<BabyCareEntry> items) =>
       _writeList(_kBabyCare, items.map((e) => e.toJson()).toList());
+
+  // ---- Baby growth ----
+  List<GrowthEntry> loadGrowth() =>
+      _readList(_kGrowth).map(GrowthEntry.fromJson).toList();
+
+  Future<void> saveGrowth(List<GrowthEntry> items) =>
+      _writeList(_kGrowth, items.map((e) => e.toJson()).toList());
 
   // ---- Appointments ----
   List<Appointment> loadAppointments() =>
