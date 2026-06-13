@@ -6,6 +6,8 @@ import '../../core/theme.dart';
 import '../../models/pregnancy_profile.dart';
 import '../../state/app_state.dart';
 import '../ai/ai_service.dart';
+import '../backup/backup_screen.dart';
+import '../notifications/notification_settings_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -189,6 +191,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
             icon: const Icon(Icons.open_in_new, size: 16),
             label: const Text('Get an API key'),
+          ),
+          const Divider(height: 40),
+
+          // ---- Notifications & Backup ----
+          const Text('Notifications & Data',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 12),
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.notifications_rounded),
+                  title: const Text('Notification settings'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const NotificationSettingsScreen()),
+                  ),
+                ),
+                const Divider(height: 1, indent: 16, endIndent: 16),
+                ListTile(
+                  leading: const Icon(Icons.cloud_download_rounded),
+                  title: const Text('Backup & restore'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const BackupScreen()),
+                  ),
+                ),
+              ],
+            ),
           ),
           const Divider(height: 40),
 

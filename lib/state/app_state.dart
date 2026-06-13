@@ -5,6 +5,7 @@ import '../core/checklist_data.dart';
 import '../core/theme.dart';
 import '../core/wellness.dart';
 import '../data/local_store.dart';
+import '../models/bump_photo.dart';
 import '../models/log_entry.dart';
 import '../models/pregnancy_profile.dart';
 
@@ -773,4 +774,32 @@ class ThemeModeNotifier extends StateNotifier<AppThemeMode> {
 final themeModeProvider =
     StateNotifierProvider<ThemeModeNotifier, AppThemeMode>((ref) {
   return ThemeModeNotifier(ref.watch(localStoreProvider));
+});
+
+/// Bump photos, newest first.
+class BumpPhotosNotifier extends StateNotifier<List<BumpPhoto>> {
+  BumpPhotosNotifier(this._store)
+      : super(_sorted(_store.loadBumpPhotos()));
+
+  final LocalStore _store;
+
+  static List<BumpPhoto> _sorted(List<BumpPhoto> list) {
+    final copy = [...list]..sort((a, b) => b.date.compareTo(a.date));
+    return copy;
+  }
+
+  Future<void> add(BumpPhoto photo) async {
+    state = _sorted([...state, photo]);
+    await _store.saveBumpPhotos(state);
+  }
+
+  Future<void> remove(String id) async {
+    state = state.where((p) => p.id != id).toList();
+    await _store.saveBumpPhotos(state);
+  }
+}
+
+final bumpPhotosProvider =
+    StateNotifierProvider<BumpPhotosNotifier, List<BumpPhoto>>((ref) {
+  return BumpPhotosNotifier(ref.watch(localStoreProvider));
 });
