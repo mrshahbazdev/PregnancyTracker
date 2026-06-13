@@ -5,8 +5,11 @@ import '../core/checklist_data.dart';
 import '../core/theme.dart';
 import '../core/wellness.dart';
 import '../data/local_store.dart';
+import '../models/bump_photo.dart';
 import '../models/log_entry.dart';
+import '../models/notification_prefs.dart';
 import '../models/pregnancy_profile.dart';
+import '../services/notification_service.dart';
 
 /// Provides the [LocalStore]. Overridden with a concrete instance in main().
 final localStoreProvider = Provider<LocalStore>((ref) {
@@ -773,4 +776,91 @@ class ThemeModeNotifier extends StateNotifier<AppThemeMode> {
 final themeModeProvider =
     StateNotifierProvider<ThemeModeNotifier, AppThemeMode>((ref) {
   return ThemeModeNotifier(ref.watch(localStoreProvider));
+});
+
+/// Bump photos, newest first.
+class BumpPhotosNotifier extends StateNotifier<List<BumpPhoto>> {
+  BumpPhotosNotifier(this._store)
+      : super(_sorted(_store.loadBumpPhotos()));
+
+  final LocalStore _store;
+
+  static List<BumpPhoto> _sorted(List<BumpPhoto> list) {
+    final copy = [...list]..sort((a, b) => b.date.compareTo(a.date));
+    return copy;
+  }
+
+  Future<void> add(BumpPhoto photo) async {
+    state = _sorted([...state, photo]);
+    await _store.saveBumpPhotos(state);
+  }
+
+  Future<void> remove(String id) async {
+    state = state.where((p) => p.id != id).toList();
+    await _store.saveBumpPhotos(state);
+  }
+}
+
+final bumpPhotosProvider =
+    StateNotifierProvider<BumpPhotosNotifier, List<BumpPhoto>>((ref) {
+  return BumpPhotosNotifier(ref.watch(localStoreProvider));
+});
+
+/// Notification preferences + scheduling.
+class NotificationPrefsNotifier extends StateNotifier<NotificationPrefs> {
+  NotificationPrefsNotifier(this._store)
+      : super(_store.loadNotificationPrefs());
+
+  final LocalStore _store;
+
+  Future<void> _persist() => _store.saveNotificationPrefs(state);
+
+  Future<void> toggleWellness(bool enabled) async {
+    state = state.copyWith(wellnessEnabled: enabled);
+    await _persist();
+    if (enabled) {
+      await NotificationService.instance.requestPermission();
+      await NotificationService.instance.scheduleDailyWellness(
+        hour: state.wellnessHour,
+        minute: state.wellnessMinute,
+      );
+    } else {
+      await NotificationService.instance.cancel(100);
+    }
+  }
+
+  Future<void> setWellnessTime(int hour, int minute) async {
+    state = state.copyWith(wellnessHour: hour, wellnessMinute: minute);
+    await _persist();
+    if (state.wellnessEnabled) {
+      await NotificationService.instance.scheduleDailyWellness(
+        hour: hour,
+        minute: minute,
+      );
+    }
+  }
+
+  Future<void> toggleWeekly(bool enabled) async {
+    state = state.copyWith(weeklyEnabled: enabled);
+    await _persist();
+    if (enabled) {
+      await NotificationService.instance.requestPermission();
+      await NotificationService.instance.scheduleWeeklyUpdate(
+        weekday: state.weeklyDay,
+        hour: state.weeklyHour,
+      );
+    } else {
+      await NotificationService.instance.cancel(200);
+    }
+  }
+
+  Future<void> toggleAppointment(bool enabled) async {
+    state = state.copyWith(appointmentEnabled: enabled);
+    await _persist();
+  }
+}
+
+final notificationPrefsProvider =
+    StateNotifierProvider<NotificationPrefsNotifier, NotificationPrefs>((ref) {
+  return NotificationPrefsNotifier(ref.watch(localStoreProvider));
 });

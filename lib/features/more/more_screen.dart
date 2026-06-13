@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme.dart';
 import '../affirmations/affirmations_screen.dart';
+import '../backup/backup_screen.dart';
 import '../appointments/appointments_screen.dart';
 import '../babycare/baby_care_screen.dart';
 import '../babymilestones/baby_milestones_screen.dart';
@@ -12,6 +13,8 @@ import '../contacts/emergency_contacts_screen.dart';
 import '../cravings/cravings_screen.dart';
 import '../exercises/breathing_screen.dart';
 import '../glossary/glossary_screen.dart';
+import '../notifications/notification_settings_screen.dart';
+import '../photos/bump_photos_screen.dart';
 import '../growth/growth_screen.dart';
 import '../journal/journal_screen.dart';
 import '../memory/time_capsule_screen.dart';
@@ -93,6 +96,13 @@ class MoreScreen extends StatelessWidget {
             color: AppColors.primaryDark,
           ),
           _FeatureGrid(items: _learnItems),
+          const SizedBox(height: 20),
+          _SectionHeader(
+            icon: Icons.build_rounded,
+            title: 'Tools & Data',
+            color: AppColors.accent,
+          ),
+          _FeatureGrid(items: _toolsItems),
           const SizedBox(height: 16),
           Center(
             child: Text(
@@ -335,6 +345,12 @@ final _emotionalItems = [
     color: AppColors.primaryDark,
     builder: (_) => const BabyNamesScreen(),
   ),
+  _FeatureItem(
+    icon: Icons.photo_camera_rounded,
+    label: 'Bump Photos',
+    color: AppColors.primary,
+    builder: (_) => const BumpPhotosScreen(),
+  ),
 ];
 
 final _postBirthItems = [
@@ -367,6 +383,21 @@ final _postBirthItems = [
     label: 'Baby Milestones',
     color: Colors.amber,
     builder: (_) => const BabyMilestonesScreen(),
+  ),
+];
+
+final _toolsItems = [
+  _FeatureItem(
+    icon: Icons.notifications_rounded,
+    label: 'Notifications',
+    color: AppColors.primary,
+    builder: (_) => const NotificationSettingsScreen(),
+  ),
+  _FeatureItem(
+    icon: Icons.cloud_download_rounded,
+    label: 'Backup',
+    color: AppColors.secondary,
+    builder: (_) => const BackupScreen(),
   ),
 ];
 

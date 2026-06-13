@@ -4,7 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/baby_names_data.dart';
 import '../core/theme.dart';
+import '../models/bump_photo.dart';
 import '../models/log_entry.dart';
+import '../models/notification_prefs.dart';
 import '../models/pregnancy_profile.dart';
 
 /// Lightweight JSON-backed persistence using SharedPreferences. This keeps the
@@ -40,6 +42,8 @@ class LocalStore {
   static const _kVaccineDone = 'vaccine_done';
   static const _kMilestoneDates = 'milestone_dates';
   static const _kThemeMode = 'theme_mode';
+  static const _kNotificationPrefs = 'notification_prefs';
+  static const _kBumpPhotos = 'bump_photos';
 
   static Future<LocalStore> create() async {
     final prefs = await SharedPreferences.getInstance();
@@ -262,6 +266,33 @@ class LocalStore {
 
   Future<void> saveCustomNames(List<BabyName> names) =>
       _writeList(_kNameCustom, names.map((e) => e.toJson()).toList());
+
+  // ---- Notification preferences ----
+  NotificationPrefs loadNotificationPrefs() {
+    final raw = _prefs.getString(_kNotificationPrefs);
+    if (raw == null) return const NotificationPrefs();
+    return NotificationPrefs.fromJson(
+        jsonDecode(raw) as Map<String, dynamic>);
+  }
+
+  Future<void> saveNotificationPrefs(NotificationPrefs prefs) =>
+      _prefs.setString(_kNotificationPrefs, jsonEncode(prefs.toJson()));
+
+  // ---- Bump photos ----
+  List<BumpPhoto> loadBumpPhotos() {
+    final raw = _prefs.getString(_kBumpPhotos);
+    if (raw == null) return [];
+    return (jsonDecode(raw) as List<dynamic>)
+        .cast<Map<String, dynamic>>()
+        .map(BumpPhoto.fromJson)
+        .toList();
+  }
+
+  Future<void> saveBumpPhotos(List<BumpPhoto> photos) =>
+      _prefs.setString(
+        _kBumpPhotos,
+        jsonEncode(photos.map((p) => p.toJson()).toList()),
+      );
 
   // ---- Theme mode ----
   AppThemeMode loadThemeMode() {
