@@ -8,6 +8,7 @@ import '../data/local_store.dart';
 import '../models/bump_photo.dart';
 import '../models/log_entry.dart';
 import '../models/notification_prefs.dart';
+import '../models/nutrition_entry.dart';
 import '../models/pregnancy_profile.dart';
 import '../services/notification_service.dart';
 
@@ -863,4 +864,80 @@ class NotificationPrefsNotifier extends StateNotifier<NotificationPrefs> {
 final notificationPrefsProvider =
     StateNotifierProvider<NotificationPrefsNotifier, NotificationPrefs>((ref) {
   return NotificationPrefsNotifier(ref.watch(localStoreProvider));
+});
+
+/// Nutrition entries, newest first.
+class NutritionNotifier extends StateNotifier<List<NutritionEntry>> {
+  NutritionNotifier(this._store)
+      : super(_sorted(_store.loadNutritionEntries()));
+
+  final LocalStore _store;
+
+  static List<NutritionEntry> _sorted(List<NutritionEntry> list) {
+    final copy = [...list]..sort((a, b) => b.date.compareTo(a.date));
+    return copy;
+  }
+
+  Future<void> add(NutritionEntry entry) async {
+    state = _sorted([...state, entry]);
+    await _store.saveNutritionEntries(state);
+  }
+
+  Future<void> update(NutritionEntry entry) async {
+    state = _sorted([
+      for (final e in state) if (e.id == entry.id) entry else e,
+    ]);
+    await _store.saveNutritionEntries(state);
+  }
+
+  Future<void> remove(String id) async {
+    state = state.where((e) => e.id != id).toList();
+    await _store.saveNutritionEntries(state);
+  }
+}
+
+final nutritionProvider =
+    StateNotifierProvider<NutritionNotifier, List<NutritionEntry>>((ref) {
+  return NutritionNotifier(ref.watch(localStoreProvider));
+});
+
+/// Water intake logs.
+class WaterLogNotifier extends StateNotifier<List<WaterLog>> {
+  WaterLogNotifier(this._store) : super(_store.loadWaterLogs());
+
+  final LocalStore _store;
+
+  WaterLog todayLog() {
+    final now = DateTime.now();
+    final todayKey =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    return state.firstWhere(
+      (l) => l.dateKey == todayKey,
+      orElse: () => WaterLog(date: DateTime(now.year, now.month, now.day)),
+    );
+  }
+
+  Future<void> setGlasses(int glasses) async {
+    final now = DateTime.now();
+    final todayKey =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final exists = state.any((l) => l.dateKey == todayKey);
+    if (exists) {
+      state = [
+        for (final l in state)
+          if (l.dateKey == todayKey) l.copyWith(glasses: glasses) else l,
+      ];
+    } else {
+      state = [
+        ...state,
+        WaterLog(date: DateTime(now.year, now.month, now.day), glasses: glasses),
+      ];
+    }
+    await _store.saveWaterLogs(state);
+  }
+}
+
+final waterLogProvider =
+    StateNotifierProvider<WaterLogNotifier, List<WaterLog>>((ref) {
+  return WaterLogNotifier(ref.watch(localStoreProvider));
 });

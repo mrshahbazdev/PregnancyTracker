@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 
 import '../models/bump_photo.dart';
 import '../models/log_entry.dart';
+import '../models/nutrition_entry.dart';
 import '../models/pregnancy_profile.dart';
 import '../data/local_store.dart';
 
@@ -53,6 +54,10 @@ class BackupService {
       'favoriteAffirmations': _store.loadFavoriteAffirmations(),
       'bumpPhotos':
           _store.loadBumpPhotos().map((e) => e.toJson()).toList(),
+      'nutritionEntries':
+          _store.loadNutritionEntries().map((e) => e.toJson()).toList(),
+      'waterLogs':
+          _store.loadWaterLogs().map((e) => e.toJson()).toList(),
     };
 
     final dir = await getApplicationDocumentsDirectory();
@@ -226,6 +231,20 @@ class BackupService {
             .map(BumpPhoto.fromJson)
             .toList();
         await _store.saveBumpPhotos(items);
+      }
+
+      // Nutrition entries
+      if (data['nutritionEntries'] != null) {
+        final items = _castList(data['nutritionEntries'])
+            .map(NutritionEntry.fromJson)
+            .toList();
+        await _store.saveNutritionEntries(items);
+      }
+      if (data['waterLogs'] != null) {
+        final items = _castList(data['waterLogs'])
+            .map(WaterLog.fromJson)
+            .toList();
+        await _store.saveWaterLogs(items);
       }
 
       return true;

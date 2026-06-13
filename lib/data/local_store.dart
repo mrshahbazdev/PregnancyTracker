@@ -7,6 +7,7 @@ import '../core/theme.dart';
 import '../models/bump_photo.dart';
 import '../models/log_entry.dart';
 import '../models/notification_prefs.dart';
+import '../models/nutrition_entry.dart';
 import '../models/pregnancy_profile.dart';
 
 /// Lightweight JSON-backed persistence using SharedPreferences. This keeps the
@@ -44,6 +45,8 @@ class LocalStore {
   static const _kThemeMode = 'theme_mode';
   static const _kNotificationPrefs = 'notification_prefs';
   static const _kBumpPhotos = 'bump_photos';
+  static const _kNutritionEntries = 'nutrition_entries';
+  static const _kWaterLogs = 'water_logs';
 
   static Future<LocalStore> create() async {
     final prefs = await SharedPreferences.getInstance();
@@ -293,6 +296,21 @@ class LocalStore {
         _kBumpPhotos,
         jsonEncode(photos.map((p) => p.toJson()).toList()),
       );
+
+  // ---- Nutrition entries ----
+  List<NutritionEntry> loadNutritionEntries() =>
+      _readList(_kNutritionEntries).map(NutritionEntry.fromJson).toList();
+
+  Future<void> saveNutritionEntries(List<NutritionEntry> entries) =>
+      _writeList(
+          _kNutritionEntries, entries.map((e) => e.toJson()).toList());
+
+  // ---- Water logs ----
+  List<WaterLog> loadWaterLogs() =>
+      _readList(_kWaterLogs).map(WaterLog.fromJson).toList();
+
+  Future<void> saveWaterLogs(List<WaterLog> logs) =>
+      _writeList(_kWaterLogs, logs.map((e) => e.toJson()).toList());
 
   // ---- Theme mode ----
   AppThemeMode loadThemeMode() {
