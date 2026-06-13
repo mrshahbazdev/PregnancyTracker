@@ -860,3 +860,63 @@ class BabyCareEntry {
         note: json['note'] as String? ?? '',
       );
 }
+
+/// A single baby growth measurement (weight, height, head circumference).
+@immutable
+class GrowthEntry {
+  const GrowthEntry({
+    required this.id,
+    required this.date,
+    this.weightKg = 0,
+    this.heightCm = 0,
+    this.headCm = 0,
+    this.note = '',
+  });
+
+  final String id;
+  final DateTime date;
+
+  /// Weight in kilograms (0 = not recorded).
+  final double weightKg;
+
+  /// Height/length in centimetres (0 = not recorded).
+  final double heightCm;
+
+  /// Head circumference in centimetres (0 = not recorded).
+  final double headCm;
+
+  final String note;
+
+  GrowthEntry copyWith({
+    double? weightKg,
+    double? heightCm,
+    double? headCm,
+    String? note,
+  }) =>
+      GrowthEntry(
+        id: id,
+        date: date,
+        weightKg: weightKg ?? this.weightKg,
+        heightCm: heightCm ?? this.heightCm,
+        headCm: headCm ?? this.headCm,
+        note: note ?? this.note,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'date': date.toIso8601String(),
+        'weightKg': weightKg,
+        'heightCm': heightCm,
+        'headCm': headCm,
+        'note': note,
+      };
+
+  factory GrowthEntry.fromJson(Map<String, dynamic> json) => GrowthEntry(
+        id: json['id'] as String,
+        date: DateTime.parse(json['date'] as String),
+        weightKg: (json['weightKg'] as num?)?.toDouble() ?? 0,
+        heightCm: (json['heightCm'] as num?)?.toDouble() ?? 0,
+        headCm: (json['headCm'] as num?)?.toDouble() ?? 0,
+        note: json['note'] as String? ?? '',
+      );
+}
