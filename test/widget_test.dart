@@ -26,6 +26,7 @@ import 'package:pregnancy_tracker/core/postpartum_stats.dart';
 import 'package:pregnancy_tracker/core/baby_care_stats.dart';
 import 'package:pregnancy_tracker/core/growth_stats.dart';
 import 'package:pregnancy_tracker/core/vaccination_data.dart';
+import 'package:pregnancy_tracker/core/milestone_tracker_data.dart';
 import 'package:pregnancy_tracker/features/insights/movement_insights.dart';
 import 'package:pregnancy_tracker/models/log_entry.dart';
 import 'package:pregnancy_tracker/models/pregnancy_profile.dart';
@@ -1383,6 +1384,48 @@ void main() {
     test('all vaccine ids are unique', () {
       final ids = vaccineSchedule.map((v) => v.id).toSet();
       expect(ids.length, vaccineSchedule.length);
+    });
+  });
+
+  // =========================================================================
+  // Baby milestones
+  // =========================================================================
+
+  group('Baby milestones', () {
+    test('milestones list has expected entries', () {
+      expect(babyMilestones.isNotEmpty, true);
+      expect(babyMilestones.length, greaterThanOrEqualTo(25));
+    });
+
+    test('all milestone ids are unique', () {
+      final ids = babyMilestones.map((m) => m.id).toSet();
+      expect(ids.length, babyMilestones.length);
+    });
+
+    test('milestoneById returns correct milestone or null', () {
+      final smile = milestoneById('first_smile');
+      expect(smile, isNotNull);
+      expect(smile!.title, contains('Smile'));
+      expect(milestoneById('nonexistent'), isNull);
+    });
+
+    test('milestoneAgeBrackets returns unique sorted labels', () {
+      final brackets = milestoneAgeBrackets;
+      expect(brackets.first, 'Newborn');
+      expect(brackets.toSet().length, brackets.length);
+    });
+
+    test('ageLabel returns correct strings', () {
+      expect(ageLabel(0), 'Newborn');
+      expect(ageLabel(1), '1 month');
+      expect(ageLabel(3), '3 months');
+    });
+
+    test('MilestoneCategory labels and icons are defined', () {
+      for (final c in MilestoneCategory.values) {
+        expect(c.label.isNotEmpty, true);
+        expect(c.icon.isNotEmpty, true);
+      }
     });
   });
 }

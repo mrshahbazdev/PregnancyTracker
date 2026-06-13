@@ -465,6 +465,34 @@ final vaccineDoneProvider =
   return VaccineDoneNotifier(ref.watch(localStoreProvider));
 });
 
+/// Baby milestone achieved dates (milestone id -> ISO date string).
+class MilestoneDatesNotifier extends StateNotifier<Map<String, String>> {
+  MilestoneDatesNotifier(this._store)
+      : super(_store.loadMilestoneDates());
+
+  final LocalStore _store;
+
+  bool isAchieved(String id) => state.containsKey(id);
+
+  String? dateFor(String id) => state[id];
+
+  Future<void> markAchieved(String id, DateTime date) async {
+    state = {...state, id: date.toIso8601String()};
+    await _store.saveMilestoneDates(state);
+  }
+
+  Future<void> unmark(String id) async {
+    final next = {...state}..remove(id);
+    state = next;
+    await _store.saveMilestoneDates(state);
+  }
+}
+
+final milestoneDatesProvider =
+    StateNotifierProvider<MilestoneDatesNotifier, Map<String, String>>((ref) {
+  return MilestoneDatesNotifier(ref.watch(localStoreProvider));
+});
+
 /// Postpartum recovery day logs, newest first.
 class PostpartumNotifier extends StateNotifier<List<PostpartumEntry>> {
   PostpartumNotifier(this._store) : super(_sorted(_store.loadPostpartum()));
