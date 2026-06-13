@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/baby_names_data.dart';
 import '../core/checklist_data.dart';
+import '../core/theme.dart';
 import '../core/wellness.dart';
 import '../data/local_store.dart';
 import '../models/log_entry.dart';
@@ -755,4 +756,21 @@ class BabyNamesNotifier extends StateNotifier<BabyNamesState> {
 final babyNamesProvider =
     StateNotifierProvider<BabyNamesNotifier, BabyNamesState>((ref) {
   return BabyNamesNotifier(ref.watch(localStoreProvider));
+});
+
+/// Theme mode (system / light / dark), persisted to local storage.
+class ThemeModeNotifier extends StateNotifier<AppThemeMode> {
+  ThemeModeNotifier(this._store) : super(_store.loadThemeMode());
+
+  final LocalStore _store;
+
+  Future<void> setMode(AppThemeMode mode) async {
+    state = mode;
+    await _store.saveThemeMode(mode);
+  }
+}
+
+final themeModeProvider =
+    StateNotifierProvider<ThemeModeNotifier, AppThemeMode>((ref) {
+  return ThemeModeNotifier(ref.watch(localStoreProvider));
 });

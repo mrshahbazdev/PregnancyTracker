@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/baby_names_data.dart';
+import '../core/theme.dart';
 import '../models/log_entry.dart';
 import '../models/pregnancy_profile.dart';
 
@@ -38,6 +39,7 @@ class LocalStore {
   static const _kGrowth = 'growth_entries';
   static const _kVaccineDone = 'vaccine_done';
   static const _kMilestoneDates = 'milestone_dates';
+  static const _kThemeMode = 'theme_mode';
 
   static Future<LocalStore> create() async {
     final prefs = await SharedPreferences.getInstance();
@@ -260,4 +262,17 @@ class LocalStore {
 
   Future<void> saveCustomNames(List<BabyName> names) =>
       _writeList(_kNameCustom, names.map((e) => e.toJson()).toList());
+
+  // ---- Theme mode ----
+  AppThemeMode loadThemeMode() {
+    final raw = _prefs.getString(_kThemeMode);
+    if (raw == null) return AppThemeMode.system;
+    return AppThemeMode.values.firstWhere(
+      (m) => m.name == raw,
+      orElse: () => AppThemeMode.system,
+    );
+  }
+
+  Future<void> saveThemeMode(AppThemeMode mode) =>
+      _prefs.setString(_kThemeMode, mode.name);
 }

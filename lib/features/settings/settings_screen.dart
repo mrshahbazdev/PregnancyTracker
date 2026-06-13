@@ -39,19 +39,73 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final config = ref.watch(aiConfigProvider);
     final profile = ref.watch(profileProvider);
+    final themeMode = ref.watch(themeModeProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mutedColor = isDark ? AppColors.textMutedDark : AppColors.textMuted;
+    final surfaceColor = isDark ? AppColors.surfaceDark : AppColors.surface;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          // ---- Appearance ----
+          const Text('Appearance',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 12),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Theme',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      _ThemeChip(
+                        label: 'System',
+                        icon: Icons.brightness_auto_rounded,
+                        selected: themeMode == AppThemeMode.system,
+                        onTap: () => ref
+                            .read(themeModeProvider.notifier)
+                            .setMode(AppThemeMode.system),
+                      ),
+                      const SizedBox(width: 8),
+                      _ThemeChip(
+                        label: 'Light',
+                        icon: Icons.light_mode_rounded,
+                        selected: themeMode == AppThemeMode.light,
+                        onTap: () => ref
+                            .read(themeModeProvider.notifier)
+                            .setMode(AppThemeMode.light),
+                      ),
+                      const SizedBox(width: 8),
+                      _ThemeChip(
+                        label: 'Dark',
+                        icon: Icons.dark_mode_rounded,
+                        selected: themeMode == AppThemeMode.dark,
+                        onTap: () => ref
+                            .read(themeModeProvider.notifier)
+                            .setMode(AppThemeMode.dark),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const Divider(height: 36),
+
+          // ---- AI Assistant ----
           const Text('AI Assistant (Bring Your Own Key)',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Use your own API key for unlimited, fast and private AI. '
             'Your key is stored only on this device and never sent to our servers.',
-            style: TextStyle(color: AppColors.textMuted),
+            style: TextStyle(color: mutedColor),
           ),
           const SizedBox(height: 16),
           const Text('Provider',
@@ -93,7 +147,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             decoration: InputDecoration(
               hintText: config.provider.keyHint,
               filled: true,
-              fillColor: AppColors.surface,
+              fillColor: surfaceColor,
               suffixIcon: IconButton(
                 icon: Icon(
                     _obscure ? Icons.visibility : Icons.visibility_off),
@@ -137,6 +191,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             label: const Text('Get an API key'),
           ),
           const Divider(height: 40),
+
+          // ---- Pregnancy ----
           const Text('Pregnancy',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           const SizedBox(height: 12),
@@ -181,5 +237,58 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await ref.read(profileProvider.notifier).reset();
       if (context.mounted) Navigator.of(context).pop();
     }
+  }
+}
+
+class _ThemeChip extends StatelessWidget {
+  const _ThemeChip({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.primary.withValues(alpha: 0.16)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected
+                  ? AppColors.primary
+                  : AppColors.textMuted.withValues(alpha: 0.2),
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(icon,
+                  color: selected ? AppColors.primary : AppColors.textMuted,
+                  size: 22),
+              const SizedBox(height: 4),
+              Text(label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                    color: selected ? AppColors.primary : null,
+                  )),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

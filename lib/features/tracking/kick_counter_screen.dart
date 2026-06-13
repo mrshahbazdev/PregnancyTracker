@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
@@ -31,6 +32,7 @@ class _KickCounterScreenState extends ConsumerState<KickCounterScreen> {
   }
 
   void _tap() {
+    HapticFeedback.lightImpact();
     setState(() {
       _start ??= DateTime.now();
       _kicks++;
