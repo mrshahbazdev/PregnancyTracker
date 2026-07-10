@@ -1,0 +1,43 @@
+# https://docs.devin.ai/onboard-devin/environment-yaml
+# Commands run from the repo root.
+initialize: |
+  # Android SDK and command-line tools for building AAB/APK
+  export ANDROID_HOME=/home/ubuntu/Android
+  mkdir -p "$ANDROID_HOME/cmdline-tools"
+  if [ ! -d "$ANDROID_HOME/cmdline-tools/latest" ]; then
+    cd "$ANDROID_HOME/cmdline-tools"
+    curl -fsSLo cmdline-tools.zip "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
+    unzip -q cmdline-tools.zip
+    mv cmdline-tools latest
+    rm cmdline-tools.zip
+  fi
+  export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator"
+  yes | sdkmanager --licenses >/dev/null 2>&1 || true
+  sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" "emulator" "system-images;android-34;google_apis_playstore;x86_64" >/dev/null 2>&1
+  flutter config --android-sdk "$ANDROID_HOME" >/dev/null
+  # Playwright for automated Play Store screenshots
+  npm install -g playwright >/dev/null 2>&1
+  npx playwright install-deps chromium >/dev/null 2>&1
+
+maintenance: |
+  flutter pub get
+
+knowledge:
+  - name: lint
+    contents: |
+      flutter analyze
+  - name: test
+    contents: |
+      flutter test
+  - name: build
+    contents: |
+      flutter build appbundle --release
+  - name: release-bundle
+    contents: |
+      build/app/outputs/bundle/release/app-release.aab
+  - name: play-store-assets
+    contents: |
+      play_store_assets/
+  - name: notes
+    contents: |
+      Play Store submissions require a signing keystore at android/app/upload-keystore.jks and android/key.properties. See key.properties.example.
