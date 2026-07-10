@@ -1,0 +1,19 @@
+Pregnancy Tracker is a beautiful, offline-first companion for your pregnancy journey. Designed for privacy, everything stays on your device — no account required, no data sent to servers.
+
+Key features:
+• Onboarding & due-date calculator: Last period, conception, IVF transfer, or known due date.
+• Today dashboard: Current week and day, progress ring, baby size comparison, and week-by-week development summaries.
+• Interactive 3D-style baby: Drag to rotate and scrub the timeline to watch your baby grow.
+• Tracking tools: Kick counter with session history, contraction timer with 5-1-1 guidance, symptom & mood log, weight and blood pressure with trend charts.
+• BYOK AI Assistant: Bring your own OpenAI or Google Gemini API key. It is stored securely on-device and never leaves your phone.
+• Time Capsule: Write notes and letters to your baby as keepsakes.
+• More tools: Appointments, nutrition, exercises, birth plan, baby names, vaccinations, milestones, budget, emergency contacts, and bump photos.
+
+Why choose Pregnancy Tracker?
+• 100% offline-first — your data is yours.
+• Privacy-first — the AI key stays in the secure enclave (Keychain/Keystore).
+• Material 3 design with a calm, warm visual language.
+
+Safety note: This app provides educational information only and is not medical advice. Always consult your healthcare provider for medical decisions.
+
+Keywords: pregnancy tracker, baby tracker, pregnancy app, 3D baby, kick counter, contraction timer, AI assistant, week by week, pregnancy journal, due date calculator, maternity, prenatal, baby development, pregnancy diary.
